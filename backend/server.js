@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import "dotenv/config.js";
+import dotenv from "dotenv/config.js"; // Ensure proper dotenv import
 
 // Import routes
 import userRoutes from "./routes/userRoutes.js";
@@ -11,15 +11,17 @@ import orderRoutes from "./routes/orderRoutes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
-// app config
+// App configuration
 const app = express();
 const port = process.env.PORT || 4000;
 
-// middleware
+// Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173' // Allow requests from this origin
+}));
 
-// DB Connection
+// Database connection
 connectDB();
 
 // Routes
@@ -34,19 +36,17 @@ app.get("/", (req, res) => {
   res.send("API Working");
 });
 
+// Catch-all for undefined routes
+app.use((req, res, next) => {
+  const error = new Error(`Can't find ${req.originalUrl} on this server!`);
+  error.statusCode = 404;
+  next(error);
+});
+
 // Global error handler (should be the last middleware)
 app.use(errorHandler);
 
-// Catch-all for undefined routes
-app.use((req, res, next) => {
-  next({
-    message: `Can't find ${req.originalUrl} on this server!`,
-    statusCode: 404,
-  });
-});
-
-// this is to run the express server
+// Start the server
 app.listen(port, () => {
-  console.log(`Server Started on http://localhost:${port}`);
+  console.log(`Server started on http://localhost:${port}`);
 });
-

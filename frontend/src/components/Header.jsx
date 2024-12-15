@@ -1,35 +1,29 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../utils/AuthContext.jsx'
+import { useAuth } from '../utils/AuthContext'
 
-function Header() {
+const Header = () => {
   const { user, logout } = useAuth()
 
   return (
-    <header className="bg-blue-600 text-white">
-      <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold">Vendor App</Link>
-        <ul className="flex space-x-4">
-          <li><Link to="/" className="hover:text-blue-200">Home</Link></li>
-          <li><Link to="/products" className="hover:text-blue-200">Products</Link></li>
+    <header className="bg-white shadow">
+      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <Link to="/" className="text-xl font-bold text-gray-800">Vendor App</Link>
+        <div className="flex items-center space-x-4">
           {user ? (
             <>
-              {user.role === 'vendor' && (
-                <li><Link to="/vendor" className="hover:text-blue-200">Vendor Dashboard</Link></li>
-              )}
-              {user.role === 'admin' && (
-                <li><Link to="/admin" className="hover:text-blue-200">Admin Dashboard</Link></li>
-              )}
-              <li><Link to="/cart" className="hover:text-blue-200">Cart</Link></li>
-              <li><button onClick={logout} className="hover:text-blue-200">Logout</button></li>
+              {user.role === 'vendor' && <Link to="/vendor" className="text-gray-600 hover:text-gray-800">Vendor Dashboard</Link>}
+              {user.role === 'admin' && <Link to="/admin" className="text-gray-600 hover:text-gray-800">Admin Dashboard</Link>}
+              <Link to="/cart" className="text-gray-600 hover:text-gray-800">Cart</Link>
+              <button onClick={logout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
             </>
           ) : (
             <>
-              <li><Link to="/login" className="hover:text-blue-200">Login</Link></li>
-              <li><Link to="/register" className="hover:text-blue-200">Register</Link></li>
+              <Link to="/login" className="text-gray-600 hover:text-gray-800">Login</Link>
+              <Link to="/register" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Register</Link>
             </>
           )}
-        </ul>
+        </div>
       </nav>
     </header>
   )
