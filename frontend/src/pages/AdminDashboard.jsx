@@ -8,6 +8,10 @@ function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [error, setError] = useState('')
 
+  // Filters state
+  const [userFilter, setUserFilter] = useState('')
+  const [orderFilter, setOrderFilter] = useState('')
+
   useEffect(() => {
     fetchUsers()
     fetchOrders()
@@ -44,12 +48,33 @@ function AdminDashboard() {
     return <div>You do not have permission to access this page.</div>
   }
 
+  // Filtered data
+  const filteredUsers = users.filter((u) =>
+    u.name.toLowerCase().includes(userFilter.toLowerCase()) ||
+    u.email.toLowerCase().includes(userFilter.toLowerCase())
+  )
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      order._id.includes(orderFilter) ||
+      order.vendor.name.toLowerCase().includes(orderFilter.toLowerCase())
+  )
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {/* Users Section */}
       <div className="mb-8">
         <h3 className="text-xl font-bold mb-2">Users</h3>
+        <input
+          type="text"
+          placeholder="Filter by name or email"
+          value={userFilter}
+          onChange={(e) => setUserFilter(e.target.value)}
+          className="border p-2 mb-4 w-full rounded"
+        />
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-200">
@@ -60,7 +85,7 @@ function AdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {filteredUsers.map((u) => (
               <tr key={u._id}>
                 <td className="border p-2">{u.name}</td>
                 <td className="border p-2">{u.email}</td>
@@ -81,8 +106,17 @@ function AdminDashboard() {
           </tbody>
         </table>
       </div>
+
+      {/* Orders Section */}
       <div>
         <h3 className="text-xl font-bold mb-2">Orders</h3>
+        <input
+          type="text"
+          placeholder="Filter by order ID or vendor"
+          value={orderFilter}
+          onChange={(e) => setOrderFilter(e.target.value)}
+          className="border p-2 mb-4 w-full rounded"
+        />
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-200">
@@ -93,7 +127,7 @@ function AdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <tr key={order._id}>
                 <td className="border p-2">{order._id}</td>
                 <td className="border p-2">{order.vendor.name}</td>
@@ -109,4 +143,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard
-

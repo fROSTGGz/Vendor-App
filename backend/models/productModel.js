@@ -11,8 +11,10 @@ const productSchema = mongoose.Schema({
   },
   category: { type: String, required: true },
   stock: { type: Number, required: true },
+  image: { type: String, required: false }, // Optional field for image URL
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
 
 export default Product;
+

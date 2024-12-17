@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { getProducts } from '../utils/api'
-import { useAuth } from '../utils/AuthContext.jsx'
+import { useAuth } from '../utils/AuthContext'
 
 function ProductList() {
   const [products, setProducts] = useState([])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const { user } = useAuth()
 
   useEffect(() => {
@@ -13,10 +14,14 @@ function ProductList() {
 
   const fetchProducts = async () => {
     try {
+      setLoading(true)
       const data = await getProducts()
       setProducts(data)
+      setError('')
     } catch (err) {
-      setError('Failed to fetch products')
+      setError('Failed to fetch products: ' + err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -29,6 +34,7 @@ function ProductList() {
     <div>
       <h2 className="text-2xl font-bold mb-4">Products</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
+      {loading && <p>Loading...</p>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {products.map((product) => (
           <div key={product._id} className="border p-4 rounded">
