@@ -1,21 +1,39 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 
 const CartContext = createContext()
 
 export const useCart = () => useContext(CartContext)
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([])
+  const [cart, setCart] = useState(() => {
+    // Initialize cart from localStorage
+    const savedCart = localStorage.getItem('cart')
+    return savedCart ? JSON.parse(savedCart) : []
+  })
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+  }, [cart])
 
   const addToCart = (product) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item._id === product._id)
-      if (existingItem) {
-        return prevCart.map(item =>
-          item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+    setCart((prevCart) => {
+      const existingProduct = prevCart.find((item) => item._id === product._id)
+  
+      if (existingProduct) {
+        // Update existing product's quantity
+        return prevCart.map((item) =>
+          item._id === product._id
+            ? { ...item, quantity: parseFloat(item.quantity) + 0.1 }
+            : item
         )
       }
-      return [...prevCart, { ...product, quantity: 1 }]
+  
+      // Add new product with initial quantity 0.1
+      return [
+        ...prevCart,
+        { ...product, quantity: 0.1 }
+      ]
     })
   }
 
@@ -24,25 +42,28 @@ export const CartProvider = ({ children }) => {
   }
 
   const updateQuantity = (productId, quantity) => {
-    setCart(prevCart =>
-      prevCart.map(item =>
-        item._id === productId ? { ...item, quantity: Math.max(0, quantity) } : item
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item._id === productId
+          ? { ...item, quantity: Math.max(0, parseFloat(quantity)) }
+          : item
       )
     )
   }
 
-  const resetCart = () => {
+  const clearCart = () => {
     setCart([])
   }
 
-  const value = {
-    cart,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    resetCart
-  }
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return (
+    <CartContext.Provider value={{ 
+      cart, 
+      addToCart, 
+      removeFromCart, 
+      updateQuantity,
+      clearCart 
+    }}>
+      {children}
+    </CartContext.Provider>
+  )
 }
-

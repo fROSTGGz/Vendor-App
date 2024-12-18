@@ -1,22 +1,30 @@
 const API_URL = 'http://localhost:4000/api'
 
 async function fetchWithAuth(url, options = {}) {
-  const user = JSON.parse(localStorage.getItem('user'))
+  console.log(options);
+  const user = JSON.parse(localStorage.getItem('user'));
+  console.log(options.headers);
   const headers = {
     ...options.headers,
-  }
+  };
 
   if (user && user.token) {
-    headers['Authorization'] = `Bearer ${user.token}`
+    headers['Authorization'] = `Bearer ${user.token}`;
+  }
+  if (
+    options.body &&
+    typeof options.body === 'object' &&
+    !(options.body instanceof FormData)
+  ) {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(options.body); // Stringify JSON body
   }
 
-  const response = await fetch(url, { 
-    ...options, 
+  const response = await fetch(url, {
+    ...options,
     headers,
-    credentials: 'include'
-  })
-  
-  
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -43,32 +51,50 @@ export async function registerUser(name, email, password) {
 }
 
 export async function getProducts() {
-  return fetchWithAuth(`${API_URL}/products`)
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  const headers = {};
+  if (user && user.token) {
+    headers['Authorization'] = `Bearer ${user.token}`;
+  }
+
+  return fetchWithAuth(`${API_URL}/products`, {
+    method: 'GET',
+    headers: headers
+  });
 }
+
+
 
 export async function createProduct(productData) {
-  console.log("productData",productData);
-  
-  const formData = new FormData();
-  for (const [key, value] of Object.entries(productData)) {
-    formData.append(key, value);
-  }
-  console.log(formData);
-  
   return fetchWithAuth(`${API_URL}/products`, {
-    
     method: 'POST',
-    body: JSON.stringify(formData),
+    body: productData,
   })
 }
 
-export async function updateProduct(id, productData) {
-  return fetchWithAuth(`${API_URL}/products/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(productData),
-  })
-}
+  // const formData = new FormData();
+  // for (const [key, value] of Object.entries(productData)) {
+  //   formData.append(key, value);
+  // }
+  // console.log(formData);
+  
+
+  export async function updateProduct(id, productData) {
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(productData)) {
+      if (key === "image" && value instanceof File) {
+        formData.append(key, value); // Append image if it's a File
+      } else {
+        formData.append(key, value); // Append other fields as is
+      }
+    }
+  
+    return fetchWithAuth(`${API_URL}/products/${id}`, {
+      method: 'PUT',
+      body: formData,
+    });
+  }
 
 export async function deleteProduct(id) {
   return fetchWithAuth(`${API_URL}/products/${id}`, {
@@ -105,4 +131,3 @@ export async function requestVendorStatus() {
     method: 'POST',
   })
 }
-

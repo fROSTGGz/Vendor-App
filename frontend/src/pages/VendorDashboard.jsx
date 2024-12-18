@@ -1,114 +1,88 @@
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '../utils/AuthContext'
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../utils/api'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../utils/AuthContext';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../utils/api';
 
 function VendorDashboard() {
-  const { user } = useAuth()
-  const [products, setProducts] = useState([])
+  const { user } = useAuth();
+  const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
     price: '',
     category: '',
     stock: '',
-    image: null
-  })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+    image: null,
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    fetchProducts();
+  }, []);
 
   const fetchProducts = async () => {
     try {
-      setLoading(true)
-      const data = await getProducts()
-      setProducts(data)
-      setError('')
+      setLoading(true);
+      const data = await getProducts();
+      setProducts(data);
+      setError('');
     } catch (err) {
-      setError('Failed to fetch products: ' + err.message)
+      setError('Failed to fetch products: ' + err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCreateProduct = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      setLoading(true)
-      //console.log(newProduct);
-
-      // const formData = new FormData()
-      // formData.append('name', newProduct.name)
-      // formData.append('description', newProduct.description)
-      // formData.append('price', newProduct.price)
-      // formData.append('category', newProduct.category)
-      // formData.append('stock', newProduct.stock)
-      // if (newProduct.image) {
-      //   formData.append('image', newProduct.image)
-      // }
-      //console.log(formData);
-      const formData = new FormData();
-      Object.entries(newProduct).forEach(([key, value]) => {
-        if (key === "image" && value instanceof File) {
-          formData.append(key, value); // Append image if it's a File
-        } else {
-          formData.append(key, value); // Append other fields as is
-        }
-      });
-
-      // Check the contents of FormData
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      await createProduct(formData)
+      setLoading(true);
+      await createProduct(newProduct);
       setNewProduct({
         name: '',
         description: '',
         price: '',
         category: '',
         stock: '',
-        image: null
-      })
-      fetchProducts()
-      setError('')
+        image: null,
+      });
+      fetchProducts();
+      setError('');
     } catch (err) {
-      setError('Failed to create product: ' + err.message)
+      setError('Failed to create product: ' + err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleUpdateProduct = async (id, updatedProduct) => {
     try {
-      setLoading(true)
-      await updateProduct(id, updatedProduct)
-      fetchProducts()
-      setError('')
+      setLoading(true);
+      await updateProduct(id, updatedProduct);
+      fetchProducts();
+      setError('');
     } catch (err) {
-      setError('Failed to update product: ' + err.message)
+      setError('Failed to update product: ' + err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDeleteProduct = async (id) => {
     try {
-      setLoading(true)
-      await deleteProduct(id)
-      fetchProducts()
-      setError('')
+      setLoading(true);
+      await deleteProduct(id);
+      fetchProducts();
+      setError('');
     } catch (err) {
-      setError('Failed to delete product: ' + err.message)
+      setError('Failed to delete product: ' + err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (user.role !== 'vendor') {
-    return <div>You do not have permission to access this page.</div>
+    return <div>You do not have permission to access this page.</div>;
   }
 
   return (
@@ -189,9 +163,16 @@ function VendorDashboard() {
           <div key={product._id} className="border p-4 rounded">
             <h3 className="font-bold">{product.name}</h3>
             <p>{product.description}</p>
-            <p>Price: ${product.price}</p>
+            <p>Price: ₹{product.price}</p>
             <p>Category: {product.category}</p>
             <p>Stock: {product.stock}</p>
+            <button
+              onClick={() => handleUpdateProduct(product._id, { ...product, stock: product.stock + 1 })}
+              className="mt-2 bg-green-500 text-white px-2 py-1 rounded"
+              disabled={loading}
+            >
+              Update
+            </button>
             <button
               onClick={() => handleDeleteProduct(product._id)}
               className="mt-2 bg-red-500 text-white px-2 py-1 rounded"
@@ -203,8 +184,7 @@ function VendorDashboard() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
-export default VendorDashboard
-
+export default VendorDashboard;

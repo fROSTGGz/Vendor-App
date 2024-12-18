@@ -131,7 +131,7 @@ function AdminDashboard() {
               <tr key={order._id}>
                 <td className="border p-2">{order._id}</td>
                 <td className="border p-2">{order.vendor.name}</td>
-                <td className="border p-2">${order.totalPrice.toFixed(2)}</td>
+                <td className="border p-2">₹{order.totalPrice.toFixed(2)}</td>
                 <td className="border p-2">{new Date(order.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
