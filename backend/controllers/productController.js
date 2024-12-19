@@ -1,12 +1,13 @@
 import Product from '../models/productModel.js';
 
+// Create a product
 export const createProduct = async (req, res, next) => {
   try {
     console.log('Received product data:', req.body);
 
     const { name, description, price, category, stock } = req.body;
-    let image_filename = req.file ? req.file.filename : null;
-    let image = req.file ? req.file.path : null;
+    const image_filename = req.file ? req.file.filename : null; // Store the filename
+    const image = req.file ? req.file.path : null; // Get the image path from multer
 
     const product = new Product({
       name,
@@ -14,7 +15,7 @@ export const createProduct = async (req, res, next) => {
       price: Number(price),
       category,
       stock: Number(stock),
-      image: image_filename, // Storing the filename
+      image: image_filename, // Store the image filename in the database
       vendor: req.user._id, // Assign the current user as vendor
     });
 
@@ -28,6 +29,7 @@ export const createProduct = async (req, res, next) => {
   }
 };
 
+// Get all products
 export const getProducts = async (req, res, next) => {
   try {
     // Check if user is authenticated
@@ -50,6 +52,25 @@ export const getProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+// Get a product by ID
+export const getProductById = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404);
+      throw new Error('Product not found');
+    }
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    next(error);
+  }
+};
+
+// Update a product
 export const updateProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -83,6 +104,8 @@ export const updateProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+// Delete a product
 export const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -102,22 +125,6 @@ export const deleteProduct = async (req, res, next) => {
     res.json({ message: 'Product removed' });
   } catch (error) {
     console.error('Error deleting product:', error);
-    next(error);
-  }
-};
-
-export const getProductById = async (req, res, next) => {
-  try {
-    const product = await Product.findById(req.params.id);
-
-    if (product) {
-      res.json(product);
-    } else {
-      res.status(404);
-      throw new Error('Product not found');
-    }
-  } catch (error) {
-    console.error('Error fetching product by ID:', error);
     next(error);
   }
 };

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 
 // Import images from the Images folder
-import logo1 from './Images/pic3.jpeg'//place with actual image names
-import logo2 from './Images/pic2.png/'//ace with actual image names
+import logo1 from './Images/pic3.jpeg'
+import logo2 from './Images/pic2.png'
 import logo3 from './Images/pic1.gif';
 
 const Header = () => {
@@ -15,15 +15,16 @@ const Header = () => {
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo section */}
         <div className="flex items-center space-x-4">
-          <a href="https://www.example1.com" target="_blank" rel="noopener noreferrer">
-            <img src={logo1} alt="Example 1" className="h-10 w-auto" />
-          </a>
-          <a href="https://www.example2.com" target="_blank" rel="noopener noreferrer">
-            <img src={logo2} alt="Example 2" className="h-10 w-auto" />
-          </a>
-          <a href="https://www.example3.com" target="_blank" rel="noopener noreferrer">
-            <img src={logo3} alt="Example 3" className="h-10 w-auto" />
-          </a>
+          {/* Replace anchor tags with Link components */}
+          <Link to="/" className="block">
+            <img src={logo1} alt="Logo 1" className="h-10 w-auto" />
+          </Link>
+          <Link to="/" className="block">
+            <img src={logo2} alt="Logo 2" className="h-10 w-auto" />
+          </Link>
+          <Link to="/" className="block">
+            <img src={logo3} alt="Logo 3" className="h-10 w-auto" />
+          </Link>
         </div>
 
         {/* Navigation links */}

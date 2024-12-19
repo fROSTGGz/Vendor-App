@@ -1,30 +1,33 @@
 import express from 'express';
+import multer from 'multer';
 import { 
   createProduct, 
   getProducts, 
   getProductById,
   deleteProduct,
-  updateProduct  // Add this
+  updateProduct 
 } from '../controllers/productController.js';
 import { protect, vendor } from '../middleware/authMiddleware.js';
-import multer from 'multer';
 
 const router = express.Router();
 
+// Set up multer for image uploads
 const storage = multer.diskStorage({
-  destination: 'uploads',
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Ensure this directory exists
+  },
   filename: (req, file, cb) => {
-    return cb(null, `${Date.now()}${file.originalname}`);
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
 const upload = multer({ storage: storage });
 
-// Apply protect middleware to GET route, but make it optional
-router.get('/', protect, getProducts);
-router.post('/', protect, vendor, upload.single('image'), createProduct);
-router.delete('/:id', protect, vendor, deleteProduct);
-router.get('/:id', getProductById);
-router.put('/:id', protect, vendor, updateProduct);
+// Routes
+router.get('/', protect, getProducts); // Get all products
+router.post('/', protect, vendor, upload.single('image'), createProduct); // Create a product
+router.get('/:id', getProductById); // Get a product by ID
+router.delete('/:id', protect, vendor, deleteProduct); // Delete a product
+router.put('/:id', protect, vendor, upload.single('image'), updateProduct); // Update a product
 
 export default router;

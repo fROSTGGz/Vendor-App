@@ -18,21 +18,29 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCart((prevCart) => {
-      const existingProduct = prevCart.find((item) => item._id === product._id)
-  
-      if (existingProduct) {
-        // Update existing product's quantity
-        return prevCart.map((item) =>
-          item._id === product._id
-            ? { ...item, quantity: parseFloat(item.quantity) + 0.1 }
-            : item
-        )
+      const existingProductIndex = prevCart.findIndex((item) => item._id === product._id)
+
+      if (existingProductIndex > -1) {
+        // If product exists, create a new array with updated quantity
+        const updatedCart = [...prevCart]
+        const existingProduct = updatedCart[existingProductIndex]
+        
+        // Add the new quantity to the existing quantity
+        updatedCart[existingProductIndex] = {
+          ...existingProduct,
+          quantity: parseFloat(existingProduct.quantity) + parseFloat(product.quantity)
+        }
+        
+        return updatedCart
       }
-  
-      // Add new product with initial quantity 0.1
+
+      // If product doesn't exist, add it to the cart
       return [
         ...prevCart,
-        { ...product, quantity: 0.1 }
+        { 
+          ...product, 
+          quantity: parseFloat(product.quantity) 
+        }
       ]
     })
   }
@@ -47,7 +55,7 @@ export const CartProvider = ({ children }) => {
         item._id === productId
           ? { ...item, quantity: Math.max(0, parseFloat(quantity)) }
           : item
-      )
+      ).filter(item => item.quantity > 0) // Remove items with 0 quantity
     )
   }
 
