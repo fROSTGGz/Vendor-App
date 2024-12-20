@@ -86,7 +86,7 @@ function ProductList() {
             <div key={product._id} className="border p-4 rounded">
               {product.image && (
                 <img 
-                  src={product.image} 
+                  src={`http://localhost:4000/uploads/${product.image}`} 
                   alt={product.name} 
                   className="w-full h-48 object-cover mb-2" 
                 />

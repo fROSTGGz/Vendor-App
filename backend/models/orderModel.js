@@ -6,10 +6,15 @@ const orderSchema = mongoose.Schema({
     ref: 'User',
     required: true
   },
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   orderItems: [
     {
       name: { type: String, required: true },
-      qty: { type: Number, required: true },
+      quantity: { type: Number, required: true },
       price: { type: Number, required: true },
       product: {
         type: mongoose.Schema.Types.ObjectId,
@@ -19,11 +24,6 @@ const orderSchema = mongoose.Schema({
     }
   ],
   totalPrice: { type: Number, required: true },
-  status: {
-    type: String,
-    enum: ['Pending', 'Processing', 'Shipped', 'Delivered'],
-    default: 'Pending'
-  }
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);

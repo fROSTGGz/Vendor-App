@@ -1,64 +1,64 @@
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '../utils/AuthContext.jsx'
-import { getAllUsers, updateUserRole, getAllOrders } from '../utils/api'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../utils/AuthContext.jsx';
+import { getAllUsers, updateUserRole, getAllOrders } from '../utils/api';
 
 function AdminDashboard() {
-  const { user } = useAuth()
-  const [users, setUsers] = useState([])
-  const [orders, setOrders] = useState([])
-  const [error, setError] = useState('')
+  const { user } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [error, setError] = useState('');
 
   // Filters state
-  const [userFilter, setUserFilter] = useState('')
-  const [orderFilter, setOrderFilter] = useState('')
+  const [userFilter, setUserFilter] = useState('');
+  const [orderFilter, setOrderFilter] = useState('');
 
   useEffect(() => {
-    fetchUsers()
-    fetchOrders()
-  }, [])
+    fetchUsers();
+    fetchOrders();
+  }, []);
 
   const fetchUsers = async () => {
     try {
-      const data = await getAllUsers()
-      setUsers(data)
+      const data = await getAllUsers();
+      setUsers(data);
     } catch (err) {
-      setError('Failed to fetch users')
+      setError('Failed to fetch users');
     }
-  }
+  };
 
   const fetchOrders = async () => {
     try {
-      const data = await getAllOrders()
-      setOrders(data)
+      const data = await getAllOrders();
+      setOrders(data);
     } catch (err) {
-      setError('Failed to fetch orders')
+      setError('Failed to fetch orders');
     }
-  }
+  };
 
   const handleUpdateUserRole = async (userId, newRole) => {
     try {
-      await updateUserRole(userId, newRole)
-      fetchUsers()
+      await updateUserRole(userId, newRole);
+      fetchUsers();
     } catch (err) {
-      setError('Failed to update user role')
+      setError('Failed to update user role');
     }
-  }
+  };
 
   if (user.role !== 'admin') {
-    return <div>You do not have permission to access this page.</div>
+    return <div>You do not have permission to access this page.</div>;
   }
 
   // Filtered data
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(userFilter.toLowerCase()) ||
     u.email.toLowerCase().includes(userFilter.toLowerCase())
-  )
+  );
 
   const filteredOrders = orders.filter(
     (order) =>
       order._id.includes(orderFilter) ||
-      order.vendor.name.toLowerCase().includes(orderFilter.toLowerCase())
-  )
+      (order.vendor && order.vendor.name.toLowerCase().includes(orderFilter.toLowerCase()))
+  );
 
   return (
     <div>
@@ -121,8 +121,10 @@ function AdminDashboard() {
           <thead>
             <tr className="bg-gray-200">
               <th className="border p-2">Order ID</th>
+              <th className="border p-2">User</th>
               <th className="border p-2">Vendor</th>
               <th className="border p-2">Total Price</th>
+              <th className="border p-2">Product Details</th>
               <th className="border p-2">Date</th>
             </tr>
           </thead>
@@ -130,8 +132,31 @@ function AdminDashboard() {
             {filteredOrders.map((order) => (
               <tr key={order._id}>
                 <td className="border p-2">{order._id}</td>
-                <td className="border p-2">{order.vendor.name}</td>
+                <td className="border p-2">{order.user.name}</td>
+                <td className="border p-2">{order.vendor ? order.vendor.name : 'N/A'}</td>
                 <td className="border p-2">₹{order.totalPrice.toFixed(2)}</td>
+                <td className="border p-2">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th className="border p-1">Product</th>
+                        <th className="border p-1">Initial Stock</th>
+                        <th className="border p-1">Checked Out</th>
+                        <th className="border p-1">Remaining Stock</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {order.productDetails.map((product, index) => (
+                        <tr key={index}>
+                          <td className="border p-1">{product.productName}</td>
+                          <td className="border p-1">{product.initialStock}</td>
+                          <td className="border p-1">{product.quantityCheckedOut}</td>
+                          <td className="border p-1">{product.remainingStock}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </td>
                 <td className="border p-2">{new Date(order.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
@@ -139,7 +164,7 @@ function AdminDashboard() {
         </table>
       </div>
     </div>
-  )
+  );
 }
 
-export default AdminDashboard
+export default AdminDashboard;

@@ -45,7 +45,7 @@ function Cart() {
         toast.error('Your cart is empty')
         return
       }
-
+  
       const order = {
         orderItems: vendorCart.map(item => ({
           product: item._id,
@@ -55,7 +55,7 @@ function Cart() {
         })),
         totalPrice: parseFloat(calculateTotal())
       }
-
+  
       // Create the order
       await createOrder(order)
       
