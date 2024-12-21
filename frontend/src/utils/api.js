@@ -131,3 +131,21 @@ export async function requestVendorStatus() {
     method: 'POST',
   })
 }
+
+export async function getAllVendorsWithProducts() {
+  return fetchWithAuth(`${API_URL}/admin/vendors`);
+}
+
+export async function deleteVendorProduct(productId) {
+  return fetchWithAuth(`${API_URL}/admin/products/${productId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function updateVendorProductStatus(productId, updates) {
+  return fetchWithAuth(`${API_URL}/admin/products/${productId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+}

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 
 // Import images from the Images folder
-import logo1 from './Images/pic3.jpeg'
-import logo2 from './Images/pic2.png'
+import logo1 from './Images/pic3.jpeg';
+import logo2 from './Images/pic2.png';
 import logo3 from './Images/pic1.gif';
 
 const Header = () => {
@@ -15,7 +15,6 @@ const Header = () => {
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo section */}
         <div className="flex items-center space-x-4">
-          {/* Replace anchor tags with Link components */}
           <Link to="/" className="block">
             <img src={logo1} alt="Logo 1" className="h-10 w-auto" />
           </Link>
@@ -29,6 +28,11 @@ const Header = () => {
 
         {/* Navigation links */}
         <div className="flex items-center space-x-4">
+          {/* Home button for all users */}
+          <Link to="/" className="text-gray-600 hover:text-gray-800 mr-4">
+            Home
+          </Link>
+
           {user ? (
             <>
               {user.role === 'vendor' && (
@@ -41,7 +45,12 @@ const Header = () => {
                   Admin Dashboard
                 </Link>
               )}
-              <Link to="/cart" className="text-gray-600 hover:text-gray-800">Cart</Link>
+              {/* Cart button for non-admin users */}
+              {user.role !== 'admin' && (
+                <Link to="/cart" className="text-gray-600 hover:text-gray-800 mr-4">
+                  Cart
+                </Link>
+              )}
               <button
                 onClick={logout}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
@@ -51,8 +60,13 @@ const Header = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-gray-600 hover:text-gray-800">Login</Link>
-              <Link to="/register" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+              <Link to="/login" className="text-gray-600 hover:text-gray-800 mr-4">
+                Login
+              </Link>
+              <Link 
+                to="/register" 
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+              >
                 Register
               </Link>
             </>

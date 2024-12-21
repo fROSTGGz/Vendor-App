@@ -24,6 +24,14 @@ const orderSchema = mongoose.Schema({
     }
   ],
   totalPrice: { type: Number, required: true },
+  productDetails: [
+    {
+      productName: { type: String },
+      initialStock: { type: Number },
+      quantityCheckedOut: { type: Number },
+      remainingStock: { type: Number }
+    }
+  ]
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);
