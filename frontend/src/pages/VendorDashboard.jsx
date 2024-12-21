@@ -80,7 +80,7 @@ function VendorDashboard() {
       // If an image is present, use FormData
       if (newProduct.image) {
         const formData = new FormData();
-        
+
         // Append text fields
         Object.keys(productData).forEach(key => {
           formData.append(key, productData[key]);
@@ -150,7 +150,7 @@ function VendorDashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6">Vendor Dashboard</h2>
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           {error}
@@ -244,8 +244,8 @@ function VendorDashboard() {
         </div>
 
         <div className="flex items-center justify-between mt-6">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             disabled={loading}
           >
@@ -256,14 +256,14 @@ function VendorDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <div 
-            key={product._id} 
+          <div
+            key={product._id}
             className="bg-white shadow-md rounded-lg overflow-hidden transform transition duration-300 hover:scale-105"
           >
             {product.image && (
-              <img 
-                src={`http://localhost:4000/uploads/${product.image}`} 
-                alt={product.name} 
+              <img
+                src={`http://localhost:4000/uploads/${product.image}`}
+                alt={product.name}
                 className="w-full h-48 object-cover"
               />
             )}
@@ -276,14 +276,24 @@ function VendorDashboard() {
               </div>
               <div className="mt-4 flex justify-between">
                 <button
-                  onClick={() => handleUpdateProduct(product._id, { 
-                    ...product, 
-                    stock: product.stock + 1 
+                  onClick={() => handleUpdateProduct(product._id, {
+                    ...product,
+                    stock: product.stock + 1
                   })}
                   className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition duration-300"
                   disabled={loading}
                 >
                   Add Stock
+                </button>
+                <button
+                  onClick={() => handleUpdateProduct(product._id, {
+                    ...product,
+                    stock: Math.max(0, product.stock - 1) // Ensure stock doesn't go below 0
+                  })}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition duration-300"
+                  disabled={loading || product.stock <= 0} // Disable when stock is 0
+                >
+                  Decrease Stock
                 </button>
                 <button
                   onClick={() => handleDeleteProduct(product._id)}
