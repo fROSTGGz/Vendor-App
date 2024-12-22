@@ -3,11 +3,9 @@ import Product from '../models/productModel.js';
 // Create a product
 export const createProduct = async (req, res, next) => {
   try {
-    console.log('Received product data:', req.body);
-
     const { name, description, price, category, stock } = req.body;
-    const image_filename = req.file ? req.file.filename : null; // Store the filename
-    const image = req.file ? req.file.path : null; // Get the image path from multer
+    const image_filename = req.file ? req.file.filename : null;
+    const image = req.file ? `/uploads/${req.file.filename}` : null; // Use this format
 
     const product = new Product({
       name,
@@ -15,13 +13,11 @@ export const createProduct = async (req, res, next) => {
       price: Number(price),
       category,
       stock: Number(stock),
-      image: image_filename, // Store the image filename in the database
-      vendor: req.user._id, // Assign the current user as vendor
+      image: image_filename, // Store filename
+      vendor: req.user._id,
     });
 
-    console.log('Creating product:', product);
     const createdProduct = await product.save();
-    console.log('Product created:', createdProduct);
     res.status(201).json(createdProduct);
   } catch (error) {
     console.error('Error creating product:', error);

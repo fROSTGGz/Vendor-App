@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext.jsx';
 import { getAllUsers, updateUserRole, getAllOrders } from '../utils/api';
+import { downloadVendorsPDF, downloadVendorsCSV } from '../utils/api';
+import { toast } from 'react-toastify'; // Make sure to import toast
 
 function AdminDashboard() {
   const { user } = useAuth();
@@ -60,6 +62,24 @@ function AdminDashboard() {
       (order.vendor && order.vendor.name.toLowerCase().includes(orderFilter.toLowerCase()))
   );
 
+  const handleDownloadPDF = async () => {
+    try {
+      await downloadVendorsPDF();
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download PDF');
+    }
+  };
+
+  const handleDownloadCSV = async () => {
+    try {
+      await downloadVendorsCSV();
+      toast.success('CSV downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download CSV');
+    }
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
@@ -67,7 +87,24 @@ function AdminDashboard() {
 
       {/* Users Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-2">Users</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Users</h3>
+          <div>
+            <button 
+              onClick={handleDownloadPDF}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-2"
+            >
+              Download PDF
+            </button>
+            <button 
+              onClick={handleDownloadCSV}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Download CSV
+            </button>
+          </div>
+        </div>
+        
         <input
           type="text"
           placeholder="Filter by name or email"

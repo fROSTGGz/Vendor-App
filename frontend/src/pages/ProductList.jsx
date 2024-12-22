@@ -81,39 +81,47 @@ function ProductList() {
       {products.length === 0 ? (
         <p>No products available</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
-            <div key={product._id} className="border p-4 rounded">
+            <div 
+              key={product._id} 
+              className="bg-white shadow-md rounded-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl"
+            >
               {product.image && (
                 <img 
                   src={`http://localhost:4000/uploads/${product.image}`} 
                   alt={product.name} 
-                  className="w-full h-48 object-cover mb-2" 
+                  className="w-full h-48 object-cover" 
                 />
               )}
-              <h3 className="font-bold">{product.name}</h3>
-              <p>Price: ₹{product.price}</p>
-              <p>Stock: {product.stock}</p>
-              
-              {user && user.role === 'vendor' && (
-                <div className="mt-2 flex items-center space-x-2">
-                  <input
-                    type="number"
-                    value={quantities[product._id] || 0}
-                    onChange={(e) => handleQuantityChange(product._id, e.target.value)}
-                    min="0"
-                    max={product.stock}
-                    className="w-20 px-2 py-1 border rounded"
-                  />
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                    disabled={quantities[product._id] === 0 || quantities[product._id] > product.stock}
-                  >
-                    Add to Cart
-                  </button>
+              <div className="p-4">
+                <h3 className="font-bold text-xl mb-2">{product.name}</h3>
+                <p className="text-gray-700 text-base mb-2">{product.description}</p>
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-green-600 font-semibold">₹{product.price}</span>
+                  <span className="text-gray-500">Stock: {product.stock}</span>
                 </div>
-              )}
+                
+                {user && user.role === 'vendor' && (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <input
+                      type="number"
+                      value={quantities[product._id] || 0}
+                      onChange={(e) => handleQuantityChange(product._id, e.target.value)}
+                      min="0"
+                      max={product.stock}
+                      className="w-20 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="flex-grow bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50"
+                      disabled={quantities[product._id] === 0 || quantities[product._id] > product.stock}
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -149,3 +149,51 @@ export async function updateVendorProductStatus(productId, updates) {
     body: JSON.stringify(updates),
   });
 }
+
+export async function downloadVendorsPDF() {
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  const response = await fetch(`${API_URL}/admin/vendors/download/pdf`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${user.token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to download PDF');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vendors_report.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+export async function downloadVendorsCSV() {
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  const response = await fetch(`${API_URL}/admin/vendors/download/csv`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${user.token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to download CSV');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vendors_report.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}

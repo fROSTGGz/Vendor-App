@@ -28,10 +28,12 @@ const Header = () => {
 
         {/* Navigation links */}
         <div className="flex items-center space-x-4">
-          {/* Home button for all users */}
-          <Link to="/" className="text-gray-600 hover:text-gray-800 mr-4">
-            Home
-          </Link>
+          {/* Home button for non-admin users */}
+          {user && user.role !== 'admin' && (
+            <Link to="/" className="text-gray-600 hover:text-gray-800 mr-4">
+              Home
+            </Link>
+          )}
 
           {user ? (
             <>

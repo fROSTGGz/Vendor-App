@@ -1,5 +1,8 @@
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { Parser } from 'json2csv';
 import User from '../models/userModel.js';
-import Order from '../models/orderModel.js';
+import Product from '../models/productModel.js';
+import Order from '../models/orderModel.js'; // Add this import
 
 export const createProduct = async (req, res, next) => {
   try {
@@ -88,5 +91,110 @@ export const getAllOrders = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to fetch orders', error: error.message });
+  }
+};
+
+export const downloadVendorsPDF = async (req, res) => {
+  try {
+    // Fetch vendors with their product counts
+    const vendors = await User.aggregate([
+      { $match: { role: 'vendor' } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'vendor',
+          as: 'products'
+        }
+      },
+      {
+        $addFields: {
+          productCount: { $size: '$products' }
+        }
+      }
+    ]);
+
+    // Create PDF
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const { width, height } = page.getSize();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    page.drawText('Vendor Information Report', {
+      x: 50,
+      y: height - 50,
+      size: 20,
+      font,
+      color: rgb(0, 0, 0)
+    });
+
+    let yPosition = height - 100;
+    vendors.forEach((vendor, index) => {
+      const vendorText = `
+        Vendor ${index + 1}:
+        Name: ${vendor.name}
+        Email: ${vendor.email}
+        Total Products: ${vendor.productCount}
+      `;
+
+      page.drawText(vendorText, {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font,
+        color: rgb(0, 0, 0)
+      });
+
+      yPosition -= 100;
+    });
+
+    const pdfBytes = await pdfDoc.save();
+
+    res.contentType('application/pdf');
+    res.send(Buffer.from(pdfBytes));
+
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating PDF', error: error.message });
+  }
+};
+
+export const downloadVendorsCSV = async (req, res) => {
+  try {
+    // Fetch vendors with their product counts
+    const vendors = await User.aggregate([
+      { $match: { role: 'vendor' } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'vendor',
+          as: 'products'
+        }
+      },
+      {
+        $addFields: {
+          productCount: { $size: '$products' }
+        }
+      }
+    ]);
+
+    // Transform vendors for CSV
+    const transformedVendors = vendors.map(vendor => ({
+      name: vendor.name,
+      email: vendor.email,
+      totalProducts: vendor.productCount,
+      registeredAt: vendor.createdAt
+    }));
+
+    const fields = ['name', 'email', 'totalProducts', 'registeredAt'];
+    const json2csvParser = new Parser({ fields });
+    const csvData = json2csvParser.parse(transformedVendors);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('vendors.csv');
+    res.send(csvData);
+
+  } catch (error) {
+    res.status(500).json({ message: 'Error generating CSV', error: error.message });
   }
 };
