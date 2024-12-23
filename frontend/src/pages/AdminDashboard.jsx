@@ -1,3 +1,5 @@
+// File: frontend/src/pages/AdminDashboard.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext.jsx';
 import {
@@ -5,7 +7,7 @@ import {
   updateUserRole,
   getAllOrders,
   downloadVendorsPDF,
-  downloadVendorsCSV
+  downloadVendorsCSV,
 } from '../utils/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';

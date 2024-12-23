@@ -153,27 +153,31 @@ export async function updateVendorProductStatus(productId, updates) {
 export async function downloadVendorsPDF() {
   const user = JSON.parse(localStorage.getItem('user'));
   
-  const response = await fetch(`${API_URL}/admin/vendors/download/pdf`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${user.token}`
+  try {
+    const response = await fetch(`${API_URL}/admin/vendors/download/pdf`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${user.token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to download PDF');
     }
-  });
 
-  if (!response.ok) {
-    throw new Error('Failed to download PDF');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vendor_report.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (error) {
+    console.error('PDF Download Error:', error);
+    throw error;
   }
-
-  const blob = await response.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'vendors_report.pdf';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
 }
-
 export async function downloadVendorsCSV() {
   const user = JSON.parse(localStorage.getItem('user'));
   
@@ -200,3 +204,4 @@ export async function downloadVendorsCSV() {
 export async function getVendorDetails(vendorId) {
   return fetchWithAuth(`${API_URL}/admin/vendors/${vendorId}`);
 }
+

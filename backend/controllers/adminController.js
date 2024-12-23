@@ -1,17 +1,25 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { Parser } from 'json2csv';
-import User from '../models/userModel.js';
-import Product from '../models/productModel.js';
-import Order from '../models/orderModel.js'; // Add this import
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { Parser } from "json2csv";
+import User from "../models/userModel.js";
+import Product from "../models/productModel.js";
+import Order from "../models/orderModel.js";
+export {
+  downloadVendorReportPDF as downloadVendorsPDF,
+  downloadVendorReportCSV as downloadVendorsCSV,
+};
+import fontkit from "@pdf-lib/fontkit";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const createProduct = async (req, res, next) => {
   try {
     const { name, description, price, category, stock } = req.body;
-    
-    // Update image handling
-    const image = req.file 
-      ? `/uploads/${req.file.filename}` 
-      : null;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const product = new Product({
       name,
@@ -19,202 +27,435 @@ export const createProduct = async (req, res, next) => {
       price: Number(price),
       category,
       stock: Number(stock),
-      image, // Store full path
+      image,
       vendor: req.user._id,
     });
 
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error("Error creating product:", error);
     next(error);
   }
 };
 
 export const getAllUsers = async (req, res) => {
-  const users = await User.find({});
-  res.json(users);
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching users", error: error.message });
+  }
 };
 
 export const updateUserRole = async (req, res) => {
-  const user = await User.findById(req.params.id);
+  try {
+    const user = await User.findById(req.params.id);
 
-  if (user) {
-    user.role = req.body.role || user.role;
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-    });
-  } else {
-    res.status(404);
-    throw new Error('User not found');
+    if (user) {
+      user.role = req.body.role || user.role;
+      const updatedUser = await user.save();
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+      });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating user role", error: error.message });
   }
 };
 
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
-      .populate('user', 'name email') // Populate user details
-      .populate('vendor', 'name') // Populate vendor details
+      .populate("user", "name email")
+      .populate("vendor", "name")
       .populate({
-        path: 'orderItems.product',
-        select: 'name stock' // Select only name and stock of the product
+        path: "orderItems.product",
+        select: "name stock",
       });
 
-    // Transform orders to include detailed product information
-    const detailedOrders = orders.map(order => {
-      const productDetails = order.orderItems.map(item => ({
-        productName: item.product?.name || 'Unknown', // Handle missing product data
-        initialStock: item.product?.stock !== undefined 
-          ? item.product.stock + item.quantity 
-          : 'N/A', // Calculate initial stock safely
+    const detailedOrders = orders.map((order) => {
+      const productDetails = order.orderItems.map((item) => ({
+        productName: item.product?.name || "Unknown",
+        initialStock:
+          item.product?.stock !== undefined
+            ? item.product.stock + item.quantity
+            : "N/A",
         quantityCheckedOut: item.quantity,
-        remainingStock: item.product?.stock !== undefined 
-          ? item.product.stock 
-          : 'N/A' // Handle missing stock
+        remainingStock:
+          item.product?.stock !== undefined ? item.product.stock : "N/A",
       }));
 
-      return {
-        ...order.toObject(), // Convert to plain object
-        productDetails,
-        user: order.user,
-        vendor: order.vendor,
-        totalPrice: order.totalPrice
-      };
+      return { ...order.toObject(), productDetails };
     });
 
     res.status(200).json(detailedOrders);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch orders', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching orders", error: error.message });
   }
 };
 
-export const downloadVendorsPDF = async (req, res) => {
+export const downloadVendorReportPDF = async (req, res) => {
   try {
-    // Fetch vendors with their product counts
+    console.log("PDF Generation Started");
+
+    // Fetch vendor data (keep your existing aggregation logic)
     const vendors = await User.aggregate([
-      { $match: { role: 'vendor' } },
+      { $match: { role: "vendor" } },
       {
         $lookup: {
-          from: 'products',
-          localField: '_id',
-          foreignField: 'vendor',
-          as: 'products'
-        }
+          from: "products",
+          localField: "_id",
+          foreignField: "vendor",
+          as: "products",
+        },
+      },
+      {
+        $lookup: {
+          from: "orders",
+          localField: "_id",
+          foreignField: "vendor",
+          as: "orders",
+        },
       },
       {
         $addFields: {
-          productCount: { $size: '$products' }
-        }
-      }
+          totalProducts: { $size: "$products" },
+          totalOrders: { $size: "$orders" },
+          totalRevenue: {
+            $sum: "$orders.totalPrice",
+          },
+        },
+      },
     ]);
 
-    // Create PDF
+    // Create PDF Document
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    pdfDoc.registerFontkit(fontkit);
 
-    page.drawText('Vendor Information Report', {
+    // Attempt to load a Unicode-friendly font
+    let customFont;
+    try {
+      // Fallback font loading with error handling
+      const fontPaths = [
+        path.join(__dirname, "fonts", "NotoSans-Regular.ttf"),
+        path.join(process.cwd(), "fonts", "NotoSans-Regular.ttf"),
+        path.join(process.cwd(), "backend", "fonts", "NotoSans-Regular.ttf"),
+      ];
+
+      let fontBytes;
+      for (const fontPath of fontPaths) {
+        try {
+          if (fs.existsSync(fontPath)) {
+            fontBytes = await fs.promises.readFile(fontPath);
+            break;
+          }
+        } catch (err) {
+          console.log(`Could not read font from ${fontPath}`);
+        }
+      }
+
+      // If no font found, use standard font with character replacement
+      if (!fontBytes) {
+        console.warn("No custom font found, falling back to standard font");
+        customFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      } else {
+        customFont = await pdfDoc.embedFont(fontBytes);
+      }
+    } catch (fontError) {
+      console.error("Font Loading Error:", fontError);
+      customFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    }
+
+    // Safe text encoding function
+    const safeEncodeText = (text) => {
+      // Replace Rupee symbol and handle potential undefined
+      return (text || "")
+        .toString()
+        .replace(/₹/g, "Rs.")
+        .replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
+    };
+
+    // Page creation function
+    const addNewPage = () => {
+      const page = pdfDoc.addPage();
+      const { width, height } = page.getSize();
+      return { page, width, height };
+    };
+
+    // First page with title
+    let { page, width, height } = addNewPage();
+    let yPosition = height - 50;
+
+    // Title
+    page.drawText("Comprehensive Vendor Report", {
       x: 50,
-      y: height - 50,
+      y: yPosition,
       size: 20,
-      font,
-      color: rgb(0, 0, 0)
+      font: customFont,
+      color: rgb(0, 0, 0),
     });
+    yPosition -= 50;
 
-    let yPosition = height - 100;
-    vendors.forEach((vendor, index) => {
-      const vendorText = `
-        Vendor ${index + 1}:
-        Name: ${vendor.name}
-        Email: ${vendor.email}
-        Total Products: ${vendor.productCount}
-      `;
+    // Process each vendor
+    vendors.forEach((vendor, vendorIndex) => {
+      // Check if we need a new page
+      if (yPosition < 100) {
+        ({ page, width, height } = addNewPage());
+        yPosition = height - 50;
+      }
 
-      page.drawText(vendorText, {
+      // Vendor Header
+      page.drawText(
+        `Vendor ${vendorIndex + 1}: ${safeEncodeText(vendor.name)}`,
+        {
+          x: 50,
+          y: yPosition,
+          size: 16,
+          font: customFont,
+          color: rgb(0, 0, 0),
+        }
+      );
+      yPosition -= 30;
+
+      // Vendor Details
+      page.drawText(`Email: ${safeEncodeText(vendor.email)}`, {
         x: 50,
         y: yPosition,
         size: 12,
-        font,
-        color: rgb(0, 0, 0)
+        font: customFont,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 20;
+
+      page.drawText(`Total Products: ${vendor.totalProducts}`, {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: customFont,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 20;
+
+      page.drawText(`Total Orders: ${vendor.totalOrders}`, {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: customFont,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 20;
+
+      // Total Revenue with safe encoding
+      page.drawText(
+        `Total Revenue: ${safeEncodeText(
+          `Rs. ${vendor.totalRevenue.toFixed(2)}`
+        )}`,
+        {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          font: customFont,
+          color: rgb(0, 0, 0),
+        }
+      );
+      yPosition -= 40;
+
+      // Product Details
+      page.drawText("Product Details:", {
+        x: 50,
+        y: yPosition,
+        size: 14,
+        font: customFont,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 30;
+
+      // Iterate through products
+      vendor.products.forEach((product, productIndex) => {
+        // Check if we need a new page
+        if (yPosition < 100) {
+          ({ page, width, height } = addNewPage());
+          yPosition = height - 50;
+        }
+
+        // Product Details
+        page.drawText(
+          `Product ${productIndex + 1}: ${safeEncodeText(product.name)}`,
+          {
+            x: 70,
+            y: yPosition,
+            size: 12,
+            font: customFont,
+            color: rgb(0, 0, 0),
+          }
+        );
+        yPosition -= 20;
+
+        page.drawText(`Category: ${safeEncodeText(product.category)}`, {
+          x: 90,
+          y: yPosition,
+          size: 10,
+          font: customFont,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 20;
+
+        page.drawText(
+          `Price: ${safeEncodeText(`Rs. ${product.price.toFixed(2)}`)}`,
+          {
+            x: 90,
+            y: yPosition,
+            size: 10,
+            font: customFont,
+            color: rgb(0, 0, 0),
+          }
+        );
+        yPosition -= 20;
+
+        page.drawText(`Current Stock: ${product.stock}`, {
+          x: 90,
+          y: yPosition,
+          size: 10,
+          font: customFont,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 40;
       });
 
-      yPosition -= 100;
+      // Add some space between vendors
+      yPosition -= 40;
     });
 
+    // Save PDF
     const pdfBytes = await pdfDoc.save();
 
-    res.contentType('application/pdf');
-    res.send(Buffer.from(pdfBytes));
+    // Send PDF response
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=vendor_report.pdf"
+    );
+    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 
+    res.send(Buffer.from(pdfBytes));
   } catch (error) {
-    res.status(500).json({ message: 'Error generating PDF', error: error.message });
+    console.error("Comprehensive PDF Generation Error:", error);
+    res.status(500).json({
+      message: "Error generating comprehensive PDF report",
+      error: error.message,
+    });
   }
 };
 
-export const downloadVendorsCSV = async (req, res) => {
+export const downloadVendorReportCSV = async (req, res) => {
   try {
-    // Fetch vendors with their product counts
+    // Fetch comprehensive vendor data
     const vendors = await User.aggregate([
-      { $match: { role: 'vendor' } },
+      { $match: { role: "vendor" } },
       {
         $lookup: {
-          from: 'products',
-          localField: '_id',
-          foreignField: 'vendor',
-          as: 'products'
-        }
+          from: "products",
+          localField: "_id",
+          foreignField: "vendor",
+          as: "products",
+        },
+      },
+      {
+        $lookup: {
+          from: "orders",
+          localField: "_id",
+          foreignField: "vendor",
+          as: "orders",
+        },
       },
       {
         $addFields: {
-          productCount: { $size: '$products' }
-        }
-      }
+          totalProducts: { $size: "$products" },
+          totalOrders: { $size: "$orders" },
+          totalRevenue: {
+            $sum: "$orders.totalPrice",
+          },
+        },
+      },
     ]);
 
-    // Transform vendors for CSV
-    const transformedVendors = vendors.map(vendor => ({
-      name: vendor.name,
-      email: vendor.email,
-      totalProducts: vendor.productCount,
-      registeredAt: vendor.createdAt
-    }));
+    // Transform data for CSV
+    const transformedData = vendors.flatMap((vendor) =>
+      vendor.products.map((product) => ({
+        VendorName: vendor.name,
+        VendorEmail: vendor.email,
+        TotalVendorProducts: vendor.totalProducts,
+        TotalVendorOrders: vendor.totalOrders,
+        TotalVendorRevenue: vendor.totalRevenue.toFixed(2),
 
-    const fields = ['name', 'email', 'totalProducts', 'registeredAt'];
+        ProductName: product.name,
+        ProductCategory: product.category,
+        ProductPrice: product.price.toFixed(2),
+        ProductStock: product.stock,
+        ProductCreatedAt: product.createdAt.toISOString().split("T")[0],
+      }))
+    );
+
+    // Generate CSV
+    const fields = [
+      "VendorName",
+      "VendorEmail",
+      "TotalVendorProducts",
+      "TotalVendorOrders",
+      "TotalVendorRevenue",
+      "ProductName",
+      "ProductCategory",
+      "ProductPrice",
+      "ProductStock",
+      "ProductCreatedAt",
+    ];
+
     const json2csvParser = new Parser({ fields });
-    const csvData = json2csvParser.parse(transformedVendors);
+    const csvData = json2csvParser.parse(transformedData);
 
-    res.header('Content-Type', 'text/csv');
-    res.attachment('vendors.csv');
+    // Send CSV
+    res.header("Content-Type", "text/csv");
+    res.attachment("comprehensive_vendors_report.csv");
     res.send(csvData);
-
   } catch (error) {
-    res.status(500).json({ message: 'Error generating CSV', error: error.message });
+    res.status(500).json({
+      message: "Error generating comprehensive CSV report",
+      error: error.message,
+    });
   }
 };
 
 export const getVendorDetails = async (req, res) => {
-  const { id } = req.params;
-
   try {
+    const { id } = req.params;
+
     const vendor = await User.findById(id);
-    if (!vendor || vendor.role !== 'vendor') {
-      return res.status(404).json({ message: 'Vendor not found' });
+    if (!vendor || vendor.role !== "vendor") {
+      return res.status(404).json({ message: "Vendor not found" });
     }
 
     const products = await Product.find({ vendor: id });
-    const orders = await Order.find({ vendor: id }).populate('orderItems.product');
+    const orders = await Order.find({ vendor: id }).populate(
+      "orderItems.product"
+    );
 
-    // Calculate remaining stock and sales data
-    const salesData = products.map(product => {
+    const salesData = products.map((product) => {
       const soldQuantity = orders.reduce((total, order) => {
-        const item = order.orderItems.find(item => item.product.toString() === product._id.toString());
+        const item = order.orderItems.find(
+          (item) => item.product.toString() === product._id.toString()
+        );
         return total + (item ? item.quantity : 0);
       }, 0);
 
@@ -227,6 +468,8 @@ export const getVendorDetails = async (req, res) => {
 
     res.json({ vendor, products, salesData });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching vendor details', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching vendor details", error: error.message });
   }
 };
