@@ -8,8 +8,10 @@ import VendorDashboard from './pages/VendorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ProductList from './pages/ProductList';
 import Cart from './pages/Cart';
+import VendorDetails from './pages/VendorDetails';
 import { AuthProvider } from './utils/AuthContext.jsx';
-import { CartProvider } from './utils/CartContext.jsx'; // Added CartProvider import
+import { CartProvider } from './utils/CartContext.jsx';
+import PrivateRoute from './components/PrivateRoute'; // Ensure PrivateRoute is correctly implemented
 
 function App() {
   return (
@@ -19,13 +21,24 @@ function App() {
           <Header />
           <main className="container mx-auto mt-4 p-4">
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/vendor" element={<VendorDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/products" element={<ProductList />} />
               <Route path="/cart" element={<Cart />} />
+
+              {/* Protected routes */}
+              <Route path="/vendor" element={<VendorDashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route
+                path="/vendors/:id"
+                element={
+                  <PrivateRoute allowedRoles={['admin']}>
+                    <VendorDetails />
+                  </PrivateRoute>
+                }
+              />
             </Routes>
           </main>
         </div>

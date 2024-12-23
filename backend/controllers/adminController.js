@@ -198,3 +198,35 @@ export const downloadVendorsCSV = async (req, res) => {
     res.status(500).json({ message: 'Error generating CSV', error: error.message });
   }
 };
+
+export const getVendorDetails = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const vendor = await User.findById(id);
+    if (!vendor || vendor.role !== 'vendor') {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    const products = await Product.find({ vendor: id });
+    const orders = await Order.find({ vendor: id }).populate('orderItems.product');
+
+    // Calculate remaining stock and sales data
+    const salesData = products.map(product => {
+      const soldQuantity = orders.reduce((total, order) => {
+        const item = order.orderItems.find(item => item.product.toString() === product._id.toString());
+        return total + (item ? item.quantity : 0);
+      }, 0);
+
+      return {
+        product,
+        soldQuantity,
+        remainingStock: product.stock - soldQuantity,
+      };
+    });
+
+    res.json({ vendor, products, salesData });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching vendor details', error: error.message });
+  }
+};

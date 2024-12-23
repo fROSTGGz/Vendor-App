@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext.jsx';
-import { getAllUsers, updateUserRole, getAllOrders } from '../utils/api';
-import { downloadVendorsPDF, downloadVendorsCSV } from '../utils/api';
-import { toast } from 'react-toastify'; // Make sure to import toast
+import {
+  getAllUsers,
+  updateUserRole,
+  getAllOrders,
+  downloadVendorsPDF,
+  downloadVendorsCSV
+} from '../utils/api';
+import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 
 function AdminDashboard() {
   const { user } = useAuth();
@@ -46,22 +52,6 @@ function AdminDashboard() {
     }
   };
 
-  if (user.role !== 'admin') {
-    return <div>You do not have permission to access this page.</div>;
-  }
-
-  // Filtered data
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(userFilter.toLowerCase()) ||
-    u.email.toLowerCase().includes(userFilter.toLowerCase())
-  );
-
-  const filteredOrders = orders.filter(
-    (order) =>
-      order._id.includes(orderFilter) ||
-      (order.vendor && order.vendor.name.toLowerCase().includes(orderFilter.toLowerCase()))
-  );
-
   const handleDownloadPDF = async () => {
     try {
       await downloadVendorsPDF();
@@ -80,6 +70,23 @@ function AdminDashboard() {
     }
   };
 
+  if (user.role !== 'admin') {
+    return <div>You do not have permission to access this page.</div>;
+  }
+
+  // Filtered data
+  const filteredUsers = users.filter(
+    (u) =>
+      u.name.toLowerCase().includes(userFilter.toLowerCase()) ||
+      u.email.toLowerCase().includes(userFilter.toLowerCase())
+  );
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      order._id.includes(orderFilter) ||
+      (order.vendor && order.vendor.name.toLowerCase().includes(orderFilter.toLowerCase()))
+  );
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
@@ -90,13 +97,13 @@ function AdminDashboard() {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold">Users</h3>
           <div>
-            <button 
+            <button
               onClick={handleDownloadPDF}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-2"
             >
               Download PDF
             </button>
-            <button 
+            <button
               onClick={handleDownloadCSV}
               className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
             >
@@ -104,7 +111,7 @@ function AdminDashboard() {
             </button>
           </div>
         </div>
-        
+
         <input
           type="text"
           placeholder="Filter by name or email"
@@ -137,6 +144,14 @@ function AdminDashboard() {
                     <option value="vendor">Vendor</option>
                     <option value="admin">Admin</option>
                   </select>
+                  {u.role === 'vendor' && (
+                    <Link
+                      to={`/vendors/${u._id}`}
+                      className="text-blue-500 hover:underline ml-2"
+                    >
+                      View Details
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}

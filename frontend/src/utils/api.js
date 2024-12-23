@@ -197,3 +197,6 @@ export async function downloadVendorsCSV() {
   a.click();
   a.remove();
 }
+export async function getVendorDetails(vendorId) {
+  return fetchWithAuth(`${API_URL}/admin/vendors/${vendorId}`);
+}
