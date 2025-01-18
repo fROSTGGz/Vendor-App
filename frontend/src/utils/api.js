@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:4000/api'
+const API_URL = 'https://vendor-app-8wrx.onrender.com/api'
 
 async function fetchWithAuth(url, options = {}) {
   console.log(options);

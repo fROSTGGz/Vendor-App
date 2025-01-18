@@ -89,7 +89,7 @@ function ProductList() {
             >
               {product.image && (
                 <img 
-                  src={`http://localhost:4000/uploads/${product.image}`} 
+                  src={`https://vendor-app-8wrx.onrender.com/uploads/${product.image}`} 
                   alt={product.name} 
                   className="w-full h-48 object-cover" 
                 />
