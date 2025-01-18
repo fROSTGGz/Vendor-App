@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js"; // Import the connectDB function
 import { errorHandler } from "./middleware/errorHandler.js"; // Import the errorHandler
-import { corsMiddleware } from "./middleware/cors.js"; // Import the corsMiddleware
+import { corsMiddleware } from "./middleware/corsMiddleware.js"; // Import the corsMiddleware
 
 // Import routes
 import userRoutes from "./routes/userRoutes.js";
