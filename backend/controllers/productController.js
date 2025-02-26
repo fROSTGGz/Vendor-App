@@ -2,10 +2,13 @@ import Product from '../models/productModel.js';
 
 // Create a product
 export const createProduct = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Not authorized to create products' });
+  }
   try {
     const { name, description, price, category, stock } = req.body;
     const image_filename = req.file ? req.file.filename : null;
-    const image = req.file ? `/uploads/${req.file.filename}` : null; // Use this format
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const product = new Product({
       name,
@@ -13,7 +16,7 @@ export const createProduct = async (req, res, next) => {
       price: Number(price),
       category,
       stock: Number(stock),
-      image: image_filename, // Store filename
+      image: image_filename,
       vendor: req.user._id,
     });
 
@@ -27,21 +30,11 @@ export const createProduct = async (req, res, next) => {
 
 // Get all products
 export const getProducts = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Not authorized to view products' });
+  }
   try {
-    // Check if user is authenticated
-    if (!req.user) {
-      // If no authentication, return all products
-      const products = await Product.find({});
-      return res.json(products);
-    }
-
-    // Check user role; vendors see only their products
-    const query = req.user.role === 'vendor' 
-      ? { vendor: req.user._id } 
-      : {};
-
-    console.log('Fetching products with query:', query);
-    const products = await Product.find(query);
+    const products = await Product.find({});
     res.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -68,18 +61,15 @@ export const getProductById = async (req, res, next) => {
 
 // Update a product
 export const updateProduct = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Not authorized to update products' });
+  }
   try {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
       res.status(404);
       throw new Error('Product not found');
-    }
-
-    // Ensure the product belongs to the current vendor or user is an admin
-    if (product.vendor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      res.status(403);
-      throw new Error('Not authorized to update this product');
     }
 
     // Update product fields
@@ -103,18 +93,15 @@ export const updateProduct = async (req, res, next) => {
 
 // Delete a product
 export const deleteProduct = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Not authorized to delete products' });
+  }
   try {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
       res.status(404);
       throw new Error('Product not found');
-    }
-
-    // Ensure the product belongs to the current vendor or user is an admin
-    if (product.vendor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      res.status(403);
-      throw new Error('Not authorized to delete this product');
     }
 
     await Product.findByIdAndDelete(req.params.id);

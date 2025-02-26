@@ -7,7 +7,7 @@ import {
   deleteProduct,
   updateProduct 
 } from '../controllers/productController.js';
-import { protect, vendor } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -25,9 +25,9 @@ const upload = multer({ storage: storage });
 
 // Routes
 router.get('/', protect, getProducts); // Get all products
-router.post('/', protect, vendor, upload.single('image'), createProduct); // Create a product
+router.post('/', protect, admin, upload.single('image'), createProduct); // Create a product
 router.get('/:id', getProductById); // Get a product by ID
-router.delete('/:id', protect, vendor, deleteProduct); // Delete a product
-router.put('/:id', protect, vendor, upload.single('image'), updateProduct); // Update a product
+router.delete('/:id', protect, admin, deleteProduct); // Delete a product
+router.put('/:id', protect, admin, upload.single('image'), updateProduct); // Update a product
 
 export default router;
