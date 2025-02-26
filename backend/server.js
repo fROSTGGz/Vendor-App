@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-// Catch-all for undefined routes
+// Catch-all for undefined routes 
 app.use((req, res, next) => {
   const error = new Error(`Can't find ${req.originalUrl} on this server!`);
   error.statusCode = 404;
