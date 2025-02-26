@@ -39,12 +39,12 @@ const Header = () => {
             <>
               {user.role === 'vendor' && (
                 <Link to="/vendor" className="text-gray-600 hover:text-gray-800">
-                  Vendor Dashboard
+                  Sristi Kheduthaat
                 </Link>
               )}
               {user.role === 'admin' && (
                 <Link to="/admin" className="text-gray-600 hover:text-gray-800">
-                  Admin Dashboard
+                  Sristi Kheduthaat's Admin Dashboard
                 </Link>
               )}
               {/* Cart button for non-admin users */}
