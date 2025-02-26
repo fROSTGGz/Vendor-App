@@ -27,9 +27,9 @@ const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       "http://localhost:5173",
-      "https://vendor-app-mu.vercel.app",
-      "https://vendor-app-git-main-keshavchahal2002kc-gmailcoms-projects.vercel.app",
-      "https://vendor-79qvc5gp0-keshavchahal2002kc-gmailcoms-projects.vercel.app",
+      "https://sristi-kheduthaat.vercel.app/",
+      "https://sristi-kheduthaat-keshavchahal2002kc-gmailcoms-projects.vercel.app/",
+      "https://sristi-kheduth-git-419fa9-keshavchahal2002kc-gmailcoms-projects.vercel.app/",
     ];
 
     if (!origin || allowedOrigins.includes(origin)) {
