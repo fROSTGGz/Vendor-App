@@ -1,9 +1,9 @@
 export const corsMiddleware = (req, res, next) => {
   const allowedOrigins = [
     "http://localhost:5173",
-    "https://sristi-kheduthaat.vercel.app/",
-    "https://sristi-kheduthaat-keshavchahal2002kc-gmailcoms-projects.vercel.app/",
-    "https://sristi-kheduth-git-419fa9-keshavchahal2002kc-gmailcoms-projects.vercel.app/",
+    "https://sristi-kheduthaat.vercel.app",
+    "https://sristi-kheduthaat-keshavchahal2002kc-gmailcoms-projects.vercel.app",
+    "https://sristi-kheduth-git-419fa9-keshavchahal2002kc-gmailcoms-projects.vercel.app",
     "https://vendor-app-8wrx.onrender.com"
   ];
 
