@@ -25,7 +25,7 @@ export const createProduct = async (req, res, next) => {
       name,
       description,
       price: Number(price),
-      category,
+      category,  
       stock: Number(stock),
       image,
       vendor: req.user._id,

@@ -1,9 +1,8 @@
-const API_URL = 'https://vendor-app-8wrx.onrender.com/api'
+const API_URL = 'http://localhost:4000/api';
 
 async function fetchWithAuth(url, options = {}) {
   console.log(options);
   const user = JSON.parse(localStorage.getItem('user'));
-  console.log(options.headers);
   const headers = {
     ...options.headers,
   };
@@ -17,7 +16,7 @@ async function fetchWithAuth(url, options = {}) {
     !(options.body instanceof FormData)
   ) {
     headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(options.body); // Stringify JSON body
+    options.body = JSON.stringify(options.body);
   }
 
   const response = await fetch(url, {
@@ -34,174 +33,130 @@ async function fetchWithAuth(url, options = {}) {
   return response.json();
 }
 
-export async function loginUser(email, password) {
-  return fetchWithAuth(`${API_URL}/users/login`, {
+export const getUnconfirmedProducts = () => {
+  return fetchWithAuth(`${API_URL}/products/unconfirmed`);
+};
+
+export const confirmProduct = (productId) => 
+  fetchWithAuth(`${API_URL}/products/confirm/${productId}`, { method: 'PUT' });
+
+export const saveVendorProducts = (products) => 
+  fetchWithAuth(`${API_URL}/vendors/products`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  })
-}
-
-export async function registerUser(name, email, password) {
-  return fetchWithAuth(`${API_URL}/users/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password }),
-  })
-}
-
-export async function getProducts() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  
-  const headers = {};
-  if (user && user.token) {
-    headers['Authorization'] = `Bearer ${user.token}`;
-  }
-
-  return fetchWithAuth(`${API_URL}/products`, {
-    method: 'GET',
-    headers: headers
+    body: { products },
   });
-}
 
+export const loginUser = (email, password) => 
+  fetchWithAuth(`${API_URL}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: { email, password },
+  });
 
+export const registerUser = (name, email, password) => 
+  fetchWithAuth(`${API_URL}/users/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: { name, email, password },
+  });
 
-export async function createProduct(productData) {
-  return fetchWithAuth(`${API_URL}/products`, {
+export const getProducts = () => 
+  fetchWithAuth(`${API_URL}/products`);
+
+export const createProduct = (productData) => 
+  fetchWithAuth(`${API_URL}/products`, {
     method: 'POST',
     body: productData,
-  })
-}
+  });
 
-  // const formData = new FormData();
-  // for (const [key, value] of Object.entries(productData)) {
-  //   formData.append(key, value);
-  // }
-  // console.log(formData);
-  
-
-  export async function updateProduct(id, productData) {
-    const formData = new FormData();
-    for (const [key, value] of Object.entries(productData)) {
-      if (key === "image" && value instanceof File) {
-        formData.append(key, value); // Append image if it's a File
-      } else {
-        formData.append(key, value); // Append other fields as is
-      }
+export const updateProduct = (id, productData) => {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(productData)) {
+    if (key === 'image' && value instanceof File) {
+      formData.append(key, value);
+    } else {
+      formData.append(key, value);
     }
-  
-    return fetchWithAuth(`${API_URL}/products/${id}`, {
-      method: 'PUT',
-      body: formData,
-    });
   }
 
-export async function deleteProduct(id) {
   return fetchWithAuth(`${API_URL}/products/${id}`, {
-    method: 'DELETE',
-  })
-}
+    method: 'PUT',
+    body: formData,
+  });
+};
 
-export async function getAllUsers() {
-  return fetchWithAuth(`${API_URL}/admin/users`)
-}
+export const deleteProduct = (id) => 
+  fetchWithAuth(`${API_URL}/products/${id}`, { method: 'DELETE' });
 
-export async function updateUserRole(userId, role) {
-  return fetchWithAuth(`${API_URL}/admin/users/${userId}/role`, {
+export const getAllUsers = () => 
+  fetchWithAuth(`${API_URL}/admin/users`);
+
+export const updateUserRole = (userId, role) => 
+  fetchWithAuth(`${API_URL}/admin/users/${userId}/role`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role }),
-  })
-}
+    body: { role },
+  });
 
-export async function getAllOrders() {
-  return fetchWithAuth(`${API_URL}/admin/orders`)
-}
+export const getAllOrders = () => 
+  fetchWithAuth(`${API_URL}/admin/orders`);
 
-export async function createOrder(orderData) {
-  return fetchWithAuth(`${API_URL}/orders`, {
+export const createOrder = (orderData) => 
+  fetchWithAuth(`${API_URL}/orders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(orderData),
-  })
-}
-
-export async function requestVendorStatus() {
-  return fetchWithAuth(`${API_URL}/vendors/request`, {
-    method: 'POST',
-  })
-}
-
-export async function getAllVendorsWithProducts() {
-  return fetchWithAuth(`${API_URL}/admin/vendors`);
-}
-
-export async function deleteVendorProduct(productId) {
-  return fetchWithAuth(`${API_URL}/admin/products/${productId}`, {
-    method: 'DELETE',
+    body: orderData,
   });
-}
 
-export async function updateVendorProductStatus(productId, updates) {
-  return fetchWithAuth(`${API_URL}/admin/products/${productId}`, {
+export const requestVendorStatus = () => 
+  fetchWithAuth(`${API_URL}/vendors/request`, { method: 'POST' });
+
+export const getAllVendorsWithProducts = () => 
+  fetchWithAuth(`${API_URL}/admin/vendors`);
+
+export const deleteVendorProduct = (productId) => 
+  fetchWithAuth(`${API_URL}/admin/products/${productId}`, { method: 'DELETE' });
+
+export const updateVendorProductStatus = (productId, updates) => 
+  fetchWithAuth(`${API_URL}/admin/products/${productId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updates),
+    body: updates,
   });
-}
+  // Add new API endpoint
+export const getVendorConfirmedProducts = () => {
+  return fetchWithAuth(`${API_URL}/products/vendor/confirmed`);
+};
 
-export async function downloadVendorsPDF() {
+export const downloadFile = async (endpoint, filename) => {
   const user = JSON.parse(localStorage.getItem('user'));
-  
   try {
-    const response = await fetch(`${API_URL}/admin/vendors/download/pdf`, {
+    const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${user.token}`
-      }
+      headers: { 'Authorization': `Bearer ${user.token}` },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to download PDF');
+      throw new Error(`Failed to download ${filename}`);
     }
 
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'vendor_report.pdf';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
   } catch (error) {
-    console.error('PDF Download Error:', error);
+    console.error('Download Error:', error);
     throw error;
   }
-}
-export async function downloadVendorsCSV() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  
-  const response = await fetch(`${API_URL}/admin/vendors/download/csv`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${user.token}`
-    }
-  });
+};
 
-  if (!response.ok) {
-    throw new Error('Failed to download CSV');
-  }
+export const downloadVendorsPDF = () => downloadFile('/admin/vendors/download/pdf', 'vendor_report.pdf');
+export const downloadVendorsCSV = () => downloadFile('/admin/vendors/download/csv', 'vendors_report.csv');
 
-  const blob = await response.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'vendors_report.csv';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-export async function getVendorDetails(vendorId) {
-  return fetchWithAuth(`${API_URL}/admin/vendors/${vendorId}`);
-}
-
+export const getVendorDetails = (vendorId) => 
+  fetchWithAuth(`${API_URL}/admin/vendors/${vendorId}`);

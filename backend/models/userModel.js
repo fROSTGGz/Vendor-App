@@ -22,6 +22,13 @@ const userSchema = mongoose.Schema(
       default: 'user',
       enum: ['user', 'vendor', 'admin'],
     },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        default: [],
+      },
+    ],
   },
   {
     timestamps: true,
@@ -44,4 +51,3 @@ userSchema.pre('save', async function (next) {
 const User = mongoose.model('User', userSchema);
 
 export default User;
-

@@ -1,10 +1,35 @@
 import express from 'express';
-import { requestVendorStatus } from '../controllers/vendorController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { 
+  addProduct,
+  getVendorProducts,
+  deleteProduct
+} from '../controllers/vendorController.js';
+import { protect, vendor } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/request', protect, requestVendorStatus);
+// Create Product
+router.post(
+  '/products',
+  protect,
+  vendor,
+  addProduct
+);
+
+// Get Vendor Products
+router.get(
+  '/products',
+  protect,
+  vendor,
+  getVendorProducts
+);
+
+// Delete Product
+router.delete(
+  '/products/:id',
+  protect,
+  vendor,
+  deleteProduct
+);
 
 export default router;
-

@@ -1,23 +1,31 @@
 import Product from '../models/productModel.js';
+import User from '../models/userModel.js';
 
 // Create a product
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, description, price, category, stock } = req.body;
+    const { name, description, price, category, stock, vendorId } = req.body;
     const image_filename = req.file ? req.file.filename : null;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const product = new Product({
+      vendor: vendorId || req.user._id,
       name,
       description,
       price: Number(price),
       category,
       stock: Number(stock),
       image: image_filename,
-      vendor: req.user._id,
     });
 
     const createdProduct = await product.save();
+
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $push: { products: createdProduct._id } },
+      { new: true }
+    );
+
     res.status(201).json(createdProduct);
   } catch (error) {
     console.error('Error creating product:', error);
@@ -28,7 +36,8 @@ export const createProduct = async (req, res, next) => {
 // Get all products
 export const getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find({});
+    const products = await Product.find({ confirmed: true })
+      .populate('vendor', 'name email');
     res.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -36,11 +45,46 @@ export const getProducts = async (req, res, next) => {
   }
 };
 
+// Get unconfirmed products
+export const getUnconfirmedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ confirmed: false }).populate('vendor', 'name email');
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching unconfirmed products:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get confirmed products for logged-in vendor
+export const getVendorConfirmedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({
+      vendor: req.user._id,
+      confirmed: true,
+    }).populate('vendor', 'name email');
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching vendor products', error: error.message });
+  }
+};
+
+// Get vendor products
+export const getVendorProducts = async (req, res) => {
+  try {
+    const vendor = await User.findById(req.params.id).populate('products', 'name price category stock');
+    console.log(vendor);
+    res.json(vendor.products);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching vendor products' });
+  }
+};
+
 // Get a product by ID
 export const getProductById = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
-
     if (product) {
       res.json(product);
     } else {
@@ -57,19 +101,11 @@ export const getProductById = async (req, res, next) => {
 export const updateProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
-
     if (!product) {
       res.status(404);
       throw new Error('Product not found');
     }
 
-    // Ensure the product belongs to the current vendor
-    if (product.vendor.toString() !== req.user._id.toString()) {
-      res.status(403);
-      throw new Error('Not authorized to update this product');
-    }
-
-    // Update product fields
     product.name = req.body.name || product.name;
     product.description = req.body.description || product.description;
     product.price = req.body.price || product.price;
@@ -77,7 +113,7 @@ export const updateProduct = async (req, res, next) => {
     product.stock = req.body.stock || product.stock;
 
     if (req.file) {
-      product.image = req.file.path; // Update image if a new one is uploaded
+      product.image = req.file.path;
     }
 
     const updatedProduct = await product.save();
@@ -88,23 +124,48 @@ export const updateProduct = async (req, res, next) => {
   }
 };
 
+// Confirm a product
+export const confirmProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { confirmed: true, vendor: req.user._id },
+      { new: true, runValidators: true }
+    ).populate('vendor', 'name email');
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error('Error confirming product:', error);
+    res.status(500).json({ message: 'Error confirming product', error: error.message });
+  }
+};
+
 // Delete a product
 export const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
-
     if (!product) {
       res.status(404);
       throw new Error('Product not found');
     }
 
-    // Ensure the product belongs to the current vendor
     if (product.vendor.toString() !== req.user._id.toString()) {
       res.status(403);
       throw new Error('Not authorized to delete this product');
     }
 
     await Product.findByIdAndDelete(req.params.id);
+
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { products: req.params.id } },
+      { new: true }
+    );
+
     res.json({ message: 'Product removed' });
   } catch (error) {
     console.error('Error deleting product:', error);

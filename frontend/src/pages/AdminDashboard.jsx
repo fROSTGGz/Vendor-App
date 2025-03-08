@@ -1,5 +1,3 @@
-// File: frontend/src/pages/AdminDashboard.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext.jsx';
 import {
@@ -8,15 +6,37 @@ import {
   getAllOrders,
   downloadVendorsPDF,
   downloadVendorsCSV,
+  createProduct,
+  getAllVendorsWithProducts,
+  getProducts, // Use the existing getProducts function
 } from '../utils/api';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
 function AdminDashboard() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // Ensure user is defined
+  if (!user) {
+    return <div>You do not have permission to access this page.</div>;
+  }
+  
+  if (user.role !== 'admin') {
+    return <div>You do not have permission to access this page.</div>;
+  }
+
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [products, setProducts] = useState([]);
   const [error, setError] = useState('');
+  const [productData, setProductData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: '',
+    stock: '',
+    vendorId: '',
+    image: null,
+  });
 
   // Filters state
   const [userFilter, setUserFilter] = useState('');
@@ -25,6 +45,8 @@ function AdminDashboard() {
   useEffect(() => {
     fetchUsers();
     fetchOrders();
+    fetchVendors();
+    fetchProducts(); // Fetch products for the vendor dashboard
   }, []);
 
   const fetchUsers = async () => {
@@ -42,6 +64,24 @@ function AdminDashboard() {
       setOrders(data);
     } catch (err) {
       setError('Failed to fetch orders');
+    }
+  };
+
+  const fetchVendors = async () => {
+    try {
+      const data = await getAllVendorsWithProducts();
+      setVendors(data);
+    } catch (error) {
+      setError('Failed to fetch vendors');
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const data = await getProducts(); // Use the existing getProducts function
+      setProducts(data);
+    } catch (error) {
+      setError('Failed to fetch products');
     }
   };
 
@@ -72,11 +112,40 @@ function AdminDashboard() {
     }
   };
 
-  if (user.role !== 'admin') {
-    return <div>You do not have permission to access this page.</div>;
-  }
+  const handleProductChange = (e) => {
+    const { name, value } = e.target;
+    setProductData((prevData) => ({ ...prevData, [name]: value }));
+  };
 
-  // Filtered data
+  const handleImageChange = (e) => {
+    setProductData((prevData) => ({ ...prevData, image: e.target.files[0] }));
+  };
+
+  const handleProductSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    Object.entries(productData).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    try {
+      await createProduct(formData);
+      toast.success('Product created successfully');
+      setProductData({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        stock: '',
+        vendorId: '',
+        image: null,
+      });
+      fetchProducts(); // Refresh the product list after adding a new product
+    } catch (error) {
+      toast.error('Failed to create product');
+    }
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.name.toLowerCase().includes(userFilter.toLowerCase()) ||
@@ -93,6 +162,68 @@ function AdminDashboard() {
     <div>
       <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {/* Add Product Section */}
+      <div className="mb-8">
+        <h3 className="text-xl font-bold">Add Product</h3>
+        <form onSubmit={handleProductSubmit}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            value={productData.name}
+            onChange={handleProductChange}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="text"
+            name="description"
+            placeholder="Description"
+            value={productData.description}
+            onChange={handleProductChange}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Price"
+            value={productData.price}
+            onChange={handleProductChange}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="text"
+            name="category"
+            placeholder="Category"
+            value={productData.category}
+            onChange={handleProductChange}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            name="stock"
+            placeholder="Stock"
+            value={productData.stock}
+            onChange={handleProductChange}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="file"
+            name="image"
+            onChange={handleImageChange}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+            Add Product
+          </button>
+        </form>
+      </div>
 
       {/* Users Section */}
       <div className="mb-8">

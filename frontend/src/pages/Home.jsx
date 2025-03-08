@@ -1,10 +1,10 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../utils/AuthContext.jsx'
-import ProductList from './ProductList'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../utils/AuthContext.jsx';
+import ProductList from './ProductList';
 
 function Home() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   return (
     <div>
@@ -35,7 +35,7 @@ function Home() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;
