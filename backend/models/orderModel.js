@@ -31,7 +31,12 @@ const orderSchema = mongoose.Schema({
       quantityCheckedOut: { type: Number },
       remainingStock: { type: Number }
     }
-  ]
+  ],
+  marketplace: {
+    type: String,
+    required: true,
+    enum: ['thursday haat', 'sunday haat', 'navjeevan haat']
+  }
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);

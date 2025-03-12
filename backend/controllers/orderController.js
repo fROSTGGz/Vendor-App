@@ -5,16 +5,36 @@ export const createOrder = async (req, res) => {
   const { orderItems, totalPrice } = req.body;
 
   try {
-    // Find the vendor of the first product in the order
+    // Validate order items
+    if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+      return res.status(400).json({ message: 'Invalid order items' });
+    }
+
+    // Validate total price
+    if (isNaN(totalPrice) || totalPrice <= 0) {
+      return res.status(400).json({ message: 'Invalid total price' });
+    }
+
+    // Find the first product to get vendor
     const firstProduct = await Product.findById(orderItems[0].product);
-    
+    if (!firstProduct) {
+      return res.status(404).json({ message: 'First product not found' });
+    }
+    if (!firstProduct.vendor) {
+      return res.status(400).json({ message: 'Product vendor not found' });
+    }
+
     // Create an array to store product details for order tracking
     const productDetails = [];
 
     // Process each order item and update stock
     for (const item of orderItems) {
-      const product = await Product.findById(item.product);
+      // Validate order item
+      if (!item.product || !item.quantity || isNaN(item.quantity)) {
+        return res.status(400).json({ message: 'Invalid order item' });
+      }
 
+      const product = await Product.findById(item.product);
       if (!product) {
         return res.status(404).json({ message: `Product ${item.product} not found` });
       }
@@ -26,26 +46,30 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      // Directly reduce the stock
-      product.stock -= item.quantity;
-      await product.save();
+      // Reduce the stock while preserving required fields
+      const update = {
+        stock: product.stock - item.quantity,
+        marketplace: product.marketplace // Preserve marketplace
+      };
+      await Product.findByIdAndUpdate(product._id, update);
 
       // Store product details for order tracking
       productDetails.push({
         productName: product.name,
-        initialStock: product.stock + item.quantity, // Original stock before reduction
+        initialStock: product.stock + item.quantity,
         quantityCheckedOut: item.quantity,
-        remainingStock: product.stock // Remaining stock after reduction
+        remainingStock: product.stock
       });
     }
 
-    // Create the order
+    // Create the order with marketplace
     const order = new Order({
       user: req.user._id,
       vendor: firstProduct.vendor,
       orderItems,
       totalPrice,
-      productDetails // Include product details in the order
+      productDetails,
+      marketplace: req.body.marketplace // Include marketplace from request
     });
 
     const createdOrder = await order.save();

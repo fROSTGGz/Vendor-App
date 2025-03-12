@@ -9,6 +9,11 @@ const productSchema = mongoose.Schema({
   stock: { type: Number, required: true },
   image: { type: String, required: false },
   confirmed: { type: Boolean, default: false },
+  marketplace: {
+    type: String,
+    required: true,
+    enum: ['thursday haat', 'sunday haat', 'navjeevan haat']
+  }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

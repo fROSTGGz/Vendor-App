@@ -18,6 +18,7 @@ export const protect = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.id).select('-password');
+    
     if (!req.user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -31,11 +32,13 @@ export const protect = async (req, res, next) => {
 
 // Middleware to authorize admin users
 export const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(401).json({ message: 'Not authorized as an admin' });
+  if (!req.user) {
+    return res.status(401).json({ message: 'Not authenticated' });
   }
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  next();
 };
 
 // Middleware to authorize vendor or admin users

@@ -1,14 +1,14 @@
 import express from 'express';
+// Update imports to match:
 import { 
-    getAllUsers, 
-    updateUserRole, 
+    getAllUsers,
+    updateUserRole,
     getAllOrders,
-    downloadVendorsPDF,
-    downloadVendorsCSV 
-} from '../controllers/adminController.js';
+    downloadVendorsPDF,  // ← Matches controller export
+    downloadVendorsCSV,  // ← Matches controller export
+    getVendorDetails
+  } from '../controllers/adminController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
-import { getVendorDetails } from '../controllers/adminController.js';
-
 
 const router = express.Router();
 

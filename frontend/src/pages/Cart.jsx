@@ -15,16 +15,12 @@ function Cart() {
 
   // State to track vendor-specific cart items
   const [vendorCart, setVendorCart] = useState([])
+  const [checkoutMarketplace, setCheckoutMarketplace] = useState('thursday haat')
 
-  // Effect to filter cart items for the current vendor
+  // Use all cart items instead of filtering by vendor
   useEffect(() => {
-    if (user && user.role === 'vendor') {
-      const vendorCartItems = cart.filter(item => 
-        item.vendor && item.vendor.toString() === user._id.toString()
-      )
-      setVendorCart(vendorCartItems)
-    }
-  }, [cart, user])
+    setVendorCart(cart);
+  }, [cart]);
 
   const calculateTotal = () => {
     return vendorCart.reduce((total, item) => 
@@ -33,14 +29,12 @@ function Cart() {
   }
 
   const handleQuantityChange = (itemId, newQuantity) => {
-    // Allow decimal input, but convert to a reasonable quantity
     const sanitizedQuantity = Math.max(0, parseFloat(newQuantity) || 0)
     updateQuantity(itemId, sanitizedQuantity)
   }
 
   const handleCheckout = async () => {
     try {
-      // Ensure there are items in the cart
       if (vendorCart.length === 0) {
         toast.error('Your cart is empty')
         return
@@ -53,16 +47,12 @@ function Cart() {
           quantity: parseFloat(item.quantity),
           price: parseFloat(item.price)
         })),
-        totalPrice: parseFloat(calculateTotal())
+        totalPrice: parseFloat(calculateTotal()),
+        marketplace: checkoutMarketplace
       }
   
-      // Create the order
       await createOrder(order)
-      
-      // Clear the cart after successful order
       clearCart()
-      
-      // Show success message
       toast.success('Order placed successfully!')
     } catch (error) {
       console.error('Checkout failed', error)
@@ -70,7 +60,6 @@ function Cart() {
     }
   }
 
-  // If user is not a vendor, show access denied message
   if (!user || user.role !== 'vendor') {
     return (
       <div className="text-center text-red-500 mt-8">
@@ -84,6 +73,16 @@ function Cart() {
     <div className="container mx-auto px-4">
       <h2 className="text-2xl font-bold mb-4">Your Cart</h2>
       
+      <select
+        value={checkoutMarketplace}
+        onChange={(e) => setCheckoutMarketplace(e.target.value)}
+        className="border p-2 mb-4"
+      >
+        <option value="thursday haat">Thursday Haat</option>
+        <option value="sunday haat">Sunday Haat</option>
+        <option value="navjeevan haat">Navjeevan Haat</option>
+      </select>
+
       {vendorCart.length === 0 ? (
         <p className="text-center text-gray-500">Your cart is empty</p>
       ) : (
@@ -139,28 +138,3 @@ function Cart() {
 }
 
 export default Cart
-      //console.log(newProduct);
-
-      // const formData = new FormData()
-      // formData.append('name', newProduct.name)
-      // formData.append('description', newProduct.description)
-      // formData.append('price', newProduct.price)
-      // formData.append('category', newProduct.category)
-      // formData.append('stock', newProduct.stock)
-      // if (newProduct.image) {
-      //   formData.append('image', newProduct.image)
-      // }
-      //console.log(formData);
-      // const formData = new FormData();
-      // Object.entries(newProduct).forEach(([key, value]) => {
-      //   if (key === "image" && value instanceof File) {
-      //     formData.append(key, value); // Append image if it's a File
-      //   } else {
-      //     formData.append(key, value); // Append other fields as is
-      //   }
-      // });
-
-      // Check the contents of FormData
-      // for (let [key, value] of formData.entries()) {
-      //   console.log(`${key}:`, value);
-      // }

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import { getUnconfirmedProducts, getVendorConfirmedProducts, confirmProduct } from '../utils/api';
-import { useProducts } from '../utils/ProductContext'; // Added import
+import { useProducts } from '../utils/ProductContext';
 
 function VendorDashboard() {
   const { user } = useAuth();
-  const { refreshProducts } = useProducts(); // Added line
+  const { refreshProducts } = useProducts();
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -26,6 +27,12 @@ function VendorDashboard() {
     fetchProducts();
   }, [user]);
 
+  const categories = [...new Set(products.map(product => product.category))];
+
+  const filteredProducts = selectedCategory === 'all' 
+    ? products 
+    : products.filter(product => product.category === selectedCategory);
+
   const handleSelectProduct = (productId) => {
     setSelectedProducts(prev => 
       prev.includes(productId) 
@@ -37,14 +44,9 @@ function VendorDashboard() {
   const handleConfirmProducts = async () => {
     try {
       await Promise.all(selectedProducts.map(id => confirmProduct(id)));
-      
-      // Refresh global product list
       refreshProducts();
-      
-      // Update local state
       setProducts(prev => prev.filter(p => !selectedProducts.includes(p._id)));
       setSelectedProducts([]);
-      
       alert('Products confirmed successfully!');
     } catch (error) {
       console.error('Error confirming products:', error);
@@ -54,8 +56,25 @@ function VendorDashboard() {
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">Available Products for Confirmation</h2>
+      
+      <div className="mb-6 flex items-center gap-4">
+        <label className="text-gray-700">Filter by Category:</label>
+        <select 
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="border p-2 rounded-lg w-48"
+        >
+          <option value="all">All Categories</option>
+          {categories.map(category => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map(product => (
+        {filteredProducts.map(product => (
           <div key={product._id} className="border p-4 rounded-lg shadow-sm">
             <label className="flex items-center space-x-3">
               <input
@@ -73,6 +92,7 @@ function VendorDashboard() {
           </div>
         ))}
       </div>
+
       {selectedProducts.length > 0 && (
         <button
           onClick={handleConfirmProducts}
