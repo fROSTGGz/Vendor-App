@@ -8,14 +8,14 @@ function ProductList() {
   const [products, setProducts] = useState([]);
   const { addToCart } = useCart();
   const [quantities, setQuantities] = useState({});
-  const [marketplace, setMarketplace] = useState('thursday haat');
-
+  const [marketplace, setMarketplace] = useState('Dr. Babasaheb Ambedkar Open University Campus(');
+  
+  // Fetch all products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const data = await getProducts();
-        const vendorProducts = data.filter(p => p.vendor?._id === user?._id && p.confirmed);
-        setProducts(vendorProducts);
+        setProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -33,7 +33,7 @@ function ProductList() {
   const handleAddToCart = (product) => {
     console.log('Adding product:', product);
     console.log('Selected quantity:', quantities[product._id]);
-    
+
     addToCart({
       ...product,
       quantity: quantities[product._id] || 1,
@@ -45,29 +45,34 @@ function ProductList() {
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">My Confirmed Products</h2>
-      
-      <select 
+
+      <select
         value={marketplace}
         onChange={(e) => setMarketplace(e.target.value)}
         className="border p-2 mb-4"
       >
-        <option value="thursday haat">Thursday Haat</option>
-        <option value="sunday haat">Sunday Haat</option>
-        <option value="navjeevan haat">Navjeevan Haat</option>
+        <option value="Dr. Babasaheb Ambedkar Open University Campus">Dr. Babasaheb Ambedkar Open University Chharodi AHM</option>
+        <option value="Shri Bhagwat Vidyapeeth Temple">Shri Bhagwat Vidyapeeth Sola AHM</option>
+        <option value="Atma vikasa parisara">Atma vikasa parisara Palodia AHM</option>
+        <option value="Navjeevan Trust Campus">Navjeevan Trust AHM</option>
+        <option value="Gayatri Temple Trust Campus">Gayatri Temple Trust Sector-1 Gandhinagar</option>
+        <option value="SRISTI: Sristi Campus">SRISTI: Sristi Campus AHM</option>
+        <option value="Vallabh Vidyanagar, Anand">Vallabh Vidyanagar, Anand</option>
+        <option value="Sardar Vallabhbhai Patel University (SPU) Bhaikaka Library Campus">Sardar Vallabhbhai Patel University (SPU) Vallabh Vidyanagar</option>
       </select>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map(product => (
           <div key={product._id} className="border p-4 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold">{product.name}</h3>
             <p className="text-gray-600">Price: ₹{product.price}</p>
             <p className="text-gray-600">Stock: {product.stock}</p>
-            <img 
-              src={`/uploads/${product.image}`} 
+            <img
+              src={`/uploads/${product.image}`}
               alt={product.name}
               className="mt-2 h-40 w-full object-cover"
             />
-            
+
             {/* Add Quantity Input and Cart Button */}
             <div className="mt-4 flex items-center gap-2">
               <input

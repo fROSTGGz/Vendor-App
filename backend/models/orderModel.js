@@ -35,7 +35,16 @@ const orderSchema = mongoose.Schema({
   marketplace: {
     type: String,
     required: true,
-    enum: ['thursday haat', 'sunday haat', 'navjeevan haat']
+    enum: [
+      'Dr. Babasaheb Ambedkar Open University Campus',
+      'Shri Bhagwat Vidyapeeth Temple',
+      'Atma vikasa parisara',
+      'Navjeevan Trust Campus',
+      'Gayatri Temple Trust Campus',
+      'SRISTI: Sristi Campus',
+      'Vallabh Vidyanagar, Anand',
+      'Sardar Vallabhbhai Patel University (SPU) Bhaikaka Library Campus'
+    ]
   }
 }, { timestamps: true });
 

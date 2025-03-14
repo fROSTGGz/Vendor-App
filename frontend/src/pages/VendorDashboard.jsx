@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext';
-import { getUnconfirmedProducts, getVendorConfirmedProducts, confirmProduct } from '../utils/api';
+import { getUnconfirmedProducts, getVendorConfirmedProducts, confirmProduct  } from '../utils/api';
 import { useProducts } from '../utils/ProductContext';
+import axios  from 'axios';
 
+const API_URL="http://localhost:4000/api"
 function VendorDashboard() {
   const { user } = useAuth();
   const { refreshProducts } = useProducts();
@@ -44,12 +46,16 @@ function VendorDashboard() {
   const handleConfirmProducts = async () => {
     try {
       await Promise.all(selectedProducts.map(id => confirmProduct(id)));
+      
+      // Force refresh of products
       refreshProducts();
+      
       setProducts(prev => prev.filter(p => !selectedProducts.includes(p._id)));
       setSelectedProducts([]);
       alert('Products confirmed successfully!');
     } catch (error) {
       console.error('Error confirming products:', error);
+      alert('Error confirming products');
     }
   };
 
@@ -92,6 +98,7 @@ function VendorDashboard() {
           </div>
         ))}
       </div>
+      
 
       {selectedProducts.length > 0 && (
         <button

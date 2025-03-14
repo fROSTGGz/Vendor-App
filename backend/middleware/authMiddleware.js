@@ -31,14 +31,16 @@ export const protect = async (req, res, next) => {
 };
 
 // Middleware to authorize admin users
+// authMiddleware.js
 export const admin = (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Not authenticated' });
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ 
+      message: 'Admin privileges required',
+      error: 'FORBIDDEN'
+    });
   }
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Admin access required' });
-  }
-  next();
 };
 
 // Middleware to authorize vendor or admin users

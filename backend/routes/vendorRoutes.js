@@ -2,7 +2,8 @@ import express from 'express';
 import { 
   addProduct,
   getVendorProducts,
-  deleteProduct
+  deleteProduct,
+  getAllVendors
 } from '../controllers/vendorController.js';
 import { protect, vendor } from '../middleware/authMiddleware.js';
 
@@ -31,5 +32,7 @@ router.delete(
   vendor,
   deleteProduct
 );
+
+router.get('/', protect, getAllVendors);
 
 export default router;

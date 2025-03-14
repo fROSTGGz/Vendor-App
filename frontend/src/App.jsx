@@ -8,11 +8,10 @@ import VendorDashboard from './pages/VendorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ProductList from './pages/ProductList';
 import Cart from './pages/Cart';
-import VendorDetails from './pages/VendorDetails';
 import { AuthProvider } from './utils/AuthContext.jsx';
 import { CartProvider } from './utils/CartContext.jsx';
 import { ProductProvider } from './utils/ProductContext';
-import PrivateRoute from './components/PrivateRoute'; // Ensure PrivateRoute is correctly implemented
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -33,14 +32,6 @@ function App() {
                 {/* Protected routes */}
                 <Route path="/vendor" element={<VendorDashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route
-                  path="/vendors/:id"
-                  element={
-                    <PrivateRoute allowedRoles={["admin"]}>
-                      <VendorDetails />
-                    </PrivateRoute>
-                  }
-                />
               </Routes>
             </main>
           </div>

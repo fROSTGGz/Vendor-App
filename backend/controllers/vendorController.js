@@ -40,15 +40,6 @@ export const saveVendorProducts = async (req, res) => {
   }
 };
 
-// Function to get all vendors
-export const getAllVendors = async (req, res) => {
-  try {
-    const vendors = await User.find({ role: 'vendor' });
-    res.json(vendors);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching vendors' });
-  }
-};
 export const addProduct = async (req, res) => {
   const { productId } = req.body;
   const vendorId = req.user._id;
@@ -90,6 +81,16 @@ export const getVendorProducts = async (req, res) => {
     res.status(500).json({ message: 'Error fetching vendor products' });
   }
 };
+
+export const getAllVendors = async (req, res) => {
+  try {
+    const vendors = await User.find({ role: 'vendor' });
+    res.json(vendors);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching vendors' });
+  }
+};
+
 // Routes
 router.post('/request', protect, requestVendorStatus);
 router.get('/', protect, getAllVendors);

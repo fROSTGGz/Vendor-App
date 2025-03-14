@@ -8,8 +8,14 @@ export const createProduct = async (req, res, next) => {
     const image_filename = req.file ? req.file.filename : null;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
+    // Validate at least one vendor is provided
+    if (!vendorId) {
+      res.status(400);
+      throw new Error('At least one vendor must be specified');
+    }
+
     const product = new Product({
-      vendor: vendorId || req.user._id,
+      vendor: vendorId,
       name,
       description,
       price: Number(price),
@@ -33,14 +39,16 @@ export const createProduct = async (req, res, next) => {
   }
 };
 
+
 // Get all products
+// Update getProducts to include all confirmed products
 export const getProducts = async (req, res, next) => {
   try {
     const products = await Product.find({ confirmed: true })
-      .populate('vendor', 'name email');
+      .populate('vendor', 'name email')
+      .populate('confirmedByVendors.vendor', 'name');
     res.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
     next(error);
   }
 };
@@ -48,10 +56,11 @@ export const getProducts = async (req, res, next) => {
 // Get unconfirmed products
 export const getUnconfirmedProducts = async (req, res) => {
   try {
-    const products = await Product.find({ confirmed: false }).populate('vendor', 'name email');
+    const products = await Product.find({ confirmed: false })
+      .populate('vendor', 'name email')
+      .populate('confirmedByVendors.vendor', 'name');
     res.json(products);
   } catch (error) {
-    console.error('Error fetching unconfirmed products:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -127,17 +136,37 @@ export const updateProduct = async (req, res, next) => {
 // Confirm a product
 export const confirmProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { confirmed: true, vendor: req.user._id },
-      { new: true, runValidators: true }
-    ).populate('vendor', 'name email');
-
+    console.log("Hello");
+    
+    const product = await Product.findById(req.params.id);
+    
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.json(product);
+    // Initialize array if undefined
+    if (!product.confirmedByVendors) {
+      product.confirmedByVendors = [];
+    }
+    console.log(product,"hello");
+    
+    // Existing confirmation logic
+    const vendorConfirmation = product.confirmedByVendors.find(
+      conf => conf.vendor.toString() === req.user._id.toString()
+    );
+    console.log(vendorConfirmation,"hello");
+    
+    if (vendorConfirmation) {
+      vendorConfirmation.confirmed = true;
+    } else {
+      product.confirmedByVendors.push({
+        vendor: req.user._id,
+        confirmed: true
+      });
+    }
+
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
   } catch (error) {
     console.error('Error confirming product:', error);
     res.status(500).json({ message: 'Error confirming product', error: error.message });

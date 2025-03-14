@@ -38,8 +38,9 @@ export const getUnconfirmedProducts = () => {
 };
 
 export const confirmProduct = (productId) => 
-  fetchWithAuth(`${API_URL}/products/confirm/${productId}`, { method: 'PUT' });
-
+  fetchWithAuth(`${API_URL}/products/confirm/${productId}`, { 
+    method: 'PUT' 
+  });
 export const saveVendorProducts = (products) => 
   fetchWithAuth(`${API_URL}/vendors/products`, {
     method: 'POST',
@@ -61,8 +62,9 @@ export const registerUser = (name, email, password) =>
     body: { name, email, password },
   });
 
-export const getProducts = () => 
-  fetchWithAuth(`${API_URL}/products`);
+  export const getProducts = async () => {
+    return fetchWithAuth(`${API_URL}/products`);
+  };
 
 export const createProduct = (productData) => 
   fetchWithAuth(`${API_URL}/products`, {
@@ -112,9 +114,6 @@ export const createOrder = (orderData) =>
 export const requestVendorStatus = () => 
   fetchWithAuth(`${API_URL}/vendors/request`, { method: 'POST' });
 
-export const getAllVendorsWithProducts = () => 
-  fetchWithAuth(`${API_URL}/admin/vendors`);
-
 export const deleteVendorProduct = (productId) => 
   fetchWithAuth(`${API_URL}/admin/products/${productId}`, { method: 'DELETE' });
 
@@ -124,7 +123,7 @@ export const updateVendorProductStatus = (productId, updates) =>
     headers: { 'Content-Type': 'application/json' },
     body: updates,
   });
-  // Add new API endpoint
+
 export const getVendorConfirmedProducts = () => {
   return fetchWithAuth(`${API_URL}/products/vendor/confirmed`);
 };
@@ -155,8 +154,7 @@ export const downloadFile = async (endpoint, filename) => {
   }
 };
 
-export const downloadVendorsPDF = () => downloadFile('/admin/vendors/download/pdf', 'vendor_report.pdf');
-export const downloadVendorsCSV = () => downloadFile('/admin/vendors/download/csv', 'vendors_report.csv');
-
-export const getVendorDetails = (vendorId) => 
-  fetchWithAuth(`${API_URL}/admin/vendors/${vendorId}`);
+export const getAllVendors = async () => {
+  const response = await fetchWithAuth(`${API_URL}/vendors`);
+  return response;
+};
