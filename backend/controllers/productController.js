@@ -72,7 +72,8 @@ export const getVendorConfirmedProducts = async (req, res) => {
       vendor: req.user._id,
       confirmed: true,
     }).populate('vendor', 'name email');
-
+    console.log("api respone",products);
+    
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching vendor products', error: error.message });
@@ -143,18 +144,19 @@ export const confirmProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-
+    console.log("hello222", product);
+    
     // Initialize array if undefined
     if (!product.confirmedByVendors) {
       product.confirmedByVendors = [];
     }
-    console.log(product,"hello");
+    console.log(product, "is it working");
     
-    // Existing confirmation logic
+    // Check if vendor already confirmed
     const vendorConfirmation = product.confirmedByVendors.find(
       conf => conf.vendor.toString() === req.user._id.toString()
     );
-    console.log(vendorConfirmation,"hello");
+    console.log(vendorConfirmation, "hello");
     
     if (vendorConfirmation) {
       vendorConfirmation.confirmed = true;
@@ -164,8 +166,12 @@ export const confirmProduct = async (req, res) => {
         confirmed: true
       });
     }
-
+    
+    // Mark the product as confirmed
+    product.confirmed = true;
+    
     const updatedProduct = await product.save();
+    console.log(updatedProduct, "updated product");
     res.json(updatedProduct);
   } catch (error) {
     console.error('Error confirming product:', error);

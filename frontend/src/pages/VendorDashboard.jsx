@@ -45,17 +45,16 @@ function VendorDashboard() {
 
   const handleConfirmProducts = async () => {
     try {
-      await Promise.all(selectedProducts.map(id => confirmProduct(id)));
-      
-      // Force refresh of products
-      refreshProducts();
-      
-      setProducts(prev => prev.filter(p => !selectedProducts.includes(p._id)));
-      setSelectedProducts([]);
-      alert('Products confirmed successfully!');
+      const responses = await Promise.all(selectedProducts.map(id => confirmProduct(id)));
+      const allConfirmed = responses.every(response => response.confirmed);
+      if (allConfirmed) {
+        refreshProducts(); // Refresh products on confirmation
+        setSelectedProducts([]);
+      } else {
+        console.error('Error confirming products:', responses);
+      }
     } catch (error) {
       console.error('Error confirming products:', error);
-      alert('Error confirming products');
     }
   };
 

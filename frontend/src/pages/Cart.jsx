@@ -15,7 +15,7 @@ function Cart() {
 
   // State to track vendor-specific cart items
   const [vendorCart, setVendorCart] = useState([])
-  const [checkoutMarketplace, setCheckoutMarketplace] = useState('thursday haat')
+  const [checkoutMarketplace, setCheckoutMarketplace] = useState('Dr. Babasaheb Ambedkar Open University Campus')
 
   // Use all cart items instead of filtering by vendor
   useEffect(() => {
@@ -78,9 +78,14 @@ function Cart() {
         onChange={(e) => setCheckoutMarketplace(e.target.value)}
         className="border p-2 mb-4"
       >
-        <option value="thursday haat">Thursday Haat</option>
-        <option value="sunday haat">Sunday Haat</option>
-        <option value="navjeevan haat">Navjeevan Haat</option>
+        <option value="Dr. Babasaheb Ambedkar Open University Campus">Dr. Babasaheb Ambedkar Open University Campus</option>
+        <option value="Shri Bhagwat Vidyapeeth Temple">Shri Bhagwat Vidyapeeth Temple</option>
+        <option value="Atma vikasa parisara">Atma vikasa parisara</option>
+        <option value="Navjeevan Trust Campus">Navjeevan Trust Campus</option>
+        <option value="Gayatri Temple Trust Campus">Gayatri Temple Trust Campus</option>
+        <option value="SRISTI: Sristi Campus">SRISTI: Sristi Campus</option>
+        <option value="Vallabh Vidyanagar, Anand">Vallabh Vidyanagar, Anand</option>
+        <option value="Sardar Vallabhbhai Patel University (SPU) Bhaikaka Library Campus">Sardar Vallabhbhai Patel University (SPU) Bhaikaka Library Campus</option>
       </select>
 
       {vendorCart.length === 0 ? (
